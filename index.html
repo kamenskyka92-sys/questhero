@@ -83,6 +83,19 @@
     <!-- ДЕТСКИЙ РЕЖИМ (KID VIEW)                       -->
     <!-- ============================================== -->
     <div id="kidView" class="view-section active">
+
+      <!-- Баннер, когда в семье ещё нет детей (после полного сброса) -->
+      <div class="empty-family-banner" id="emptyFamilyBanner" style="display: none;">
+        <div class="efb-icon">🦸‍♂️</div>
+        <h3>Добро пожаловать в КвестГерой!</h3>
+        <p>Сейчас в системе нет профилей детей (чистый интерфейс). Добавьте первого героя или настройте задания в родительском кабинете!</p>
+        <div class="btn-row" style="justify-content: center; margin-top: 1.25rem;">
+          <button class="primary-btn" onclick="app.openInviteKidModal()">➕ Добавить первого ребёнка</button>
+          <button class="secondary-btn" onclick="app.openParentPinModal()">🔒 Кабинет родителей</button>
+        </div>
+      </div>
+
+      <div id="kidContentWrapper">
       
       <!-- Карточка Профиля и Прогрессии -->
       <section class="profile-card">
@@ -166,17 +179,60 @@
       <div id="kidTasksTab" class="tab-content active">
 
         <!-- ============================================== -->
-        <!-- НЕДЕЛЬНЫЙ ТРЕКЕР: ПОЛОСА НАГРАД (ПН — ВС)     -->
+        <!-- БЛОК: ТВОЙ ДОСТУП НА ЭТУ НЕДЕЛЮ (АКТИВНО)     -->
+        <!-- ============================================== -->
+        <section class="current-week-access-card" id="currentWeekAccessCard">
+          <div class="cwac-header">
+            <div class="cwac-title-wrap">
+              <span class="cwac-badge">⚡ АКТИВНО СЕЙЧАС</span>
+              <h3 class="cwac-title">Твой доступ к устройствам НА ЭТУ НЕДЕЛЮ</h3>
+              <p class="cwac-sub">Определено результатами прошлой недели (действует до воскресенья 23:59 МСК)</p>
+            </div>
+            <span class="cwac-week-dates" id="cwacWeekDates">Текущая неделя</span>
+          </div>
+
+          <div class="cwac-devices-grid">
+            <!-- Телефон -->
+            <div class="cwac-device-card" id="cwacPhoneCard">
+              <div class="cwac-dev-header">
+                <span class="cwac-dev-icon">📱</span>
+                <div class="cwac-dev-title-box">
+                  <h4 class="cwac-dev-title">Телефон / Смартфон</h4>
+                  <span class="cwac-dev-pill" id="cwacPhoneStatus">РАЗБЛОКИРОВАН ✅</span>
+                </div>
+              </div>
+              <p class="cwac-dev-text" id="cwacPhoneDesc">Доступ открыт на всю эту неделю! Приятного использования.</p>
+            </div>
+
+            <!-- Компьютер -->
+            <div class="cwac-device-card" id="cwacPcCard">
+              <div class="cwac-dev-header">
+                <span class="cwac-dev-icon">💻</span>
+                <div class="cwac-dev-title-box">
+                  <h4 class="cwac-dev-title">Компьютер / ПК</h4>
+                  <span class="cwac-dev-pill" id="cwacPcStatus">ЗАБЛОКИРОВАН 🔒</span>
+                </div>
+              </div>
+              <p class="cwac-dev-text" id="cwacPcDesc">Не набрано нужное количество заданий на прошлой неделе.</p>
+            </div>
+          </div>
+          <div class="cwac-footer-note">
+            <span>💡 Хочешь открыть устройства на <strong>СЛЕДУЮЩУЮ неделю</strong>? Заполняй шкалу заданий ниже! 👇</span>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- ШКАЛА НАГРАД: ОТКРЫТИЕ НА СЛЕДУЮЩУЮ НЕДЕЛЮ     -->
         <!-- ============================================== -->
         <section class="weekly-tracker-card" id="weeklyTrackerSection">
           <div class="wt-header">
             <div class="wt-title-group">
               <div class="wt-badge-row">
-                <span class="wt-badge">📅 Недельный зачёт</span>
+                <span class="wt-badge">🎁 НАГРАДЫ НА СЛЕДУЮЩУЮ НЕДЕЛЮ</span>
                 <span class="wt-rule-badge">Пн — Вс</span>
               </div>
-              <h3 class="wt-title">Битва за Телефон и Компьютер</h3>
-              <p class="wt-dates" id="weeklyDatesRange">Загрузка дат недели...</p>
+              <h3 class="wt-title">Шкала наград: Открыть доступ НА СЛЕДУЮЩУЮ НЕДЕЛЮ</h3>
+              <p class="wt-dates" id="weeklyDatesRange">Выполняй квесты на этой неделе — полоса заполняется и открывает гаджеты на следующую неделю!</p>
             </div>
             <div class="wt-tokens-badge" title="За каждое выполненное задание даётся +1 Квест-Токен!">
               <span class="wt-tokens-icon">⭐</span>
@@ -187,29 +243,12 @@
             </div>
           </div>
 
-          <!-- Статус доступа НА ЭТУ НЕДЕЛЮ (по итогам прошлой недели) -->
-          <div class="wt-current-access-bar">
-            <span class="wca-label">Твой доступ НА ЭТУ НЕДЕЛЮ:</span>
-            <div class="wca-items">
-              <div class="wca-item" id="wcaPhoneCurrent">
-                <span class="wca-icon">📱</span>
-                <span class="wca-name">Телефон:</span>
-                <span class="wca-status" id="wcaPhoneStatusText">Загрузка...</span>
-              </div>
-              <div class="wca-item" id="wcaPcCurrent">
-                <span class="wca-icon">💻</span>
-                <span class="wca-name">Компьютер:</span>
-                <span class="wca-status" id="wcaPcStatusText">Загрузка...</span>
-              </div>
-            </div>
-          </div>
-
           <!-- Шкала прогресса НА СЛЕДУЮЩУЮ НЕДЕЛЮ -->
           <div class="wt-progress-section">
             <div class="wt-progress-header">
               <div class="wt-ph-left">
-                <span class="wt-ph-title">Прогресс квестов на СЛЕДУЮЩУЮ неделю:</span>
-                <span class="wt-ph-hint">Задания приносят 1–3 🪙 и +1 ⭐ токен</span>
+                <span class="wt-ph-title">Прогресс квестов для открытия НА СЛЕДУЮЩУЮ НЕДЕЛЮ:</span>
+                <span class="wt-ph-hint">Задания приносят от 1 до 3 🪙 и +1 ⭐ недельный токен</span>
               </div>
               <span class="wt-ph-count" id="weeklyProgressRatio">0 / 20 заданий</span>
             </div>
@@ -226,7 +265,7 @@
                 <div class="milestone-box">
                   <span class="milestone-icon">📱</span>
                   <div class="milestone-info">
-                    <strong>10 заданий</strong>
+                    <strong id="msPhoneTitle">10 заданий</strong>
                     <small>Телефон на след. неделю</small>
                   </div>
                   <span class="milestone-status-tag" id="msPhoneStatus">🔒 Осталось 10</span>
@@ -239,7 +278,7 @@
                 <div class="milestone-box">
                   <span class="milestone-icon">💻</span>
                   <div class="milestone-info">
-                    <strong>20 заданий</strong>
+                    <strong id="msPcTitle">20 заданий</strong>
                     <small>Компьютер на след. неделю</small>
                   </div>
                   <span class="milestone-status-tag" id="msPcStatus">🔒 Осталось 20</span>
@@ -380,6 +419,7 @@
         </div>
       </div>
 
+      </div> <!-- #kidContentWrapper -->
     </div>
 
     <!-- ============================================== -->
@@ -752,6 +792,23 @@
             </div>
           </div>
 
+          <!-- Настройка недельной полоски наград на след. неделю -->
+          <div class="section-card">
+            <h3>🎯 Настройка полоски наград (доступ на след. неделю)</h3>
+            <p class="hint-text">Укажите количество заданий за неделю (Пн–Вс), необходимое для открытия Телефона и Компьютера на следующую неделю:</p>
+            <div class="form-row" style="margin-top: 1rem;">
+              <div class="form-group">
+                <label>📱 Заданий для открытия Телефона:</label>
+                <input type="number" id="settingMilestonePhone" min="1" max="50" value="10" class="form-input">
+              </div>
+              <div class="form-group">
+                <label>💻 Заданий для открытия Компьютера:</label>
+                <input type="number" id="settingMilestonePc" min="1" max="50" value="20" class="form-input">
+              </div>
+            </div>
+            <button class="primary-btn" onclick="app.saveWeeklyMilestoneSettings()">💾 Сохранить цели полоски наград</button>
+          </div>
+
           <!-- Резервное копирование данных -->
           <div class="section-card">
             <h3>Резервное копирование & Перенос</h3>
@@ -765,13 +822,14 @@
             </div>
           </div>
 
-          <!-- Быстрый тест / Сброс на новый день -->
+          <!-- Быстрый тест / Сброс на новый день и Полный сброс -->
           <div class="section-card">
-            <h3>Управление днем</h3>
-            <p class="hint-text">Задания обновляются каждый день автоматически в 00:00 по московскому времени (МСК), но вы также можете сбросить день вручную для проверки.</p>
-            <div class="btn-row" style="margin-top: 1rem;">
+            <h3>Управление данными и сброс</h3>
+            <p class="hint-text">Задания обновляются каждый день автоматически в 00:00 по московскому времени (МСК). Также вы можете начать новую неделю или полностью сбросить систему.</p>
+            <div class="btn-row" style="margin-top: 1rem; flex-wrap: wrap;">
               <button class="secondary-btn" onclick="app.startNewDay(true)">🌅 Начать новый день сейчас</button>
-              <button class="danger-btn" onclick="app.resetAllProgress()">⚠️ Сбросить весь прогресс к началу</button>
+              <button class="secondary-btn" onclick="app.startNewWeek(true)">📅 Начать новую неделю</button>
+              <button class="danger-btn" onclick="app.resetAllProgress()">⚠️ Сбросить всё в ноль (чистый интерфейс)</button>
             </div>
           </div>
         </div>

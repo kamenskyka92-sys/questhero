@@ -1848,10 +1848,172 @@ body::before {
   border: 1px solid rgba(56, 189, 248, 0.25);
 }
 
+/* ==========================================================================
+   КАРТОЧКА: ДОСТУП НА ЭТУ НЕДЕЛЮ (АКТИВНО)
+   ========================================================================== */
+.current-week-access-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(30, 41, 59, 0.9) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: var(--r-xl);
+  padding: 1.4rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 24px -8px rgba(16, 185, 129, 0.2);
+}
+.cwac-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.15rem;
+  flex-wrap: wrap;
+}
+.cwac-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: var(--c-emerald);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--r-pill);
+  margin-bottom: 0.35rem;
+}
+.cwac-title {
+  font-family: var(--ff-display);
+  font-size: 1.25rem;
+  color: #fff;
+  margin: 0 0 0.25rem 0;
+}
+.cwac-sub {
+  font-size: 0.82rem;
+  color: var(--c-text-secondary);
+  margin: 0;
+}
+.cwac-week-dates {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--c-sky);
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--r-pill);
+}
+
+.cwac-devices-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.cwac-device-card {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--r-lg);
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: all var(--dur-normal);
+}
+.cwac-device-card.unlocked {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(15, 23, 42, 0.85));
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+}
+.cwac-device-card.locked {
+  border-color: rgba(239, 68, 68, 0.25);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.06), rgba(15, 23, 42, 0.85));
+}
+.cwac-dev-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.cwac-dev-icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+.cwac-dev-title-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.cwac-dev-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+}
+.cwac-dev-pill {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--r-pill);
+  display: inline-block;
+  width: max-content;
+}
+.cwac-device-card.unlocked .cwac-dev-pill {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--c-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+.cwac-device-card.locked .cwac-dev-pill {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+.cwac-dev-text {
+  font-size: 0.8rem;
+  color: var(--c-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+.cwac-footer-note {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  font-size: 0.82rem;
+  color: var(--c-indigo-light);
+  text-align: center;
+}
+
+/* Баннер пустого состояния (после полного сброса в ноль) */
+.empty-family-banner {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(30, 41, 59, 0.9));
+  border: 2px dashed rgba(99, 102, 241, 0.4);
+  border-radius: var(--r-xl);
+  padding: 3rem 1.5rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.efb-icon {
+  font-size: 3.5rem;
+  margin-bottom: 0.75rem;
+  animation: floatEmoji 3s ease-in-out infinite;
+}
+@keyframes floatEmoji {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.empty-family-banner h3 {
+  font-family: var(--ff-display);
+  font-size: 1.4rem;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+.empty-family-banner p {
+  color: var(--c-text-secondary);
+  font-size: 0.92rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
 /* Трек и майлстоуны */
 .wt-track-container {
   position: relative;
   padding: 2.2rem 0.5rem 1rem 0.5rem;
+  overflow: visible;
 }
 .wt-track-bg {
   width: 100%;
@@ -1884,18 +2046,25 @@ body::before {
   100% { transform: translateX(100%); }
 }
 
-/* Вехи (Майлстоуны) */
+/* Вехи (Майлстоуны) - Исправлено переполнение для Компьютера */
 .wt-milestone {
   position: absolute;
   top: 0;
-  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
-  align-items: center;
   transition: all var(--dur-normal);
 }
-.wt-milestone.milestone-10 { left: 50%; }
-.wt-milestone.milestone-20 { left: 100%; }
+.wt-milestone.milestone-10 {
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+.wt-milestone.milestone-20 {
+  left: auto;
+  right: 0;
+  transform: none;
+  align-items: flex-end;
+}
 
 .milestone-pin {
   background: var(--c-bg-card);
@@ -1926,7 +2095,16 @@ body::before {
   gap: 0.65rem;
   box-shadow: 0 4px 14px rgba(0,0,0,0.35);
   margin-top: 0.75rem;
-  min-width: 170px;
+  max-width: 220px;
+  width: max-content;
+}
+.wt-milestone.milestone-20 .milestone-box {
+  margin-right: 0;
+}
+.wt-milestone.unlocked .milestone-box {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(30, 41, 59, 0.95));
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
 }
 .wt-milestone.unlocked .milestone-box {
   border-color: rgba(16, 185, 129, 0.5);
@@ -2212,6 +2390,9 @@ body::before {
 
 /* Адаптив для мобильных устройств */
 @media (max-width: 768px) {
+  .cwac-devices-grid {
+    grid-template-columns: 1fr;
+  }
   .wt-milestone.milestone-10, .wt-milestone.milestone-20 {
     position: static;
     transform: none;

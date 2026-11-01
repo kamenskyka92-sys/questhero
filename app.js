@@ -276,8 +276,9 @@ class QuestHeroApp {
       if (kid.weekKey !== currentWeekKey) {
         anyChanged = true;
         const totalDone = kid.weekTokens || 0;
-        const phoneUnlocked = totalDone >= 10;
-        const pcUnlocked = totalDone >= 20;
+        const milestones = (state.settings && state.settings.weeklyMilestones) || { phoneTarget: 10, pcTarget: 20 };
+        const phoneUnlocked = totalDone >= (milestones.phoneTarget || 10);
+        const pcUnlocked = totalDone >= (milestones.pcTarget || 20);
 
         // Архивация итогов недели
         kid.pastWeeks.unshift({
@@ -361,12 +362,22 @@ class QuestHeroApp {
           delete parsed.badges;
         }
 
-        if (!parsed.kids || parsed.kids.length === 0) {
+        // Если данных о детях вообще нет (первый вход)
+        if (!parsed.kids) {
           return this.getInitialState();
         }
 
-        if (!parsed.activeKidId || !parsed.kids.some(k => k.id === parsed.activeKidId)) {
-          parsed.activeKidId = parsed.kids[0].id;
+        if (!parsed.settings) parsed.settings = {};
+        if (!parsed.settings.weeklyMilestones) {
+          parsed.settings.weeklyMilestones = { phoneTarget: 10, pcTarget: 20 };
+        }
+
+        if (parsed.kids.length > 0) {
+          if (!parsed.activeKidId || !parsed.kids.some(k => k.id === parsed.activeKidId)) {
+            parsed.activeKidId = parsed.kids[0].id;
+          }
+        } else {
+          parsed.activeKidId = null;
         }
 
         // Обновление/миграция данных под новые правила (1–3 монеты, недельный трекер, штрафы)
@@ -398,8 +409,6 @@ class QuestHeroApp {
             });
           }
 
-          // Если у ребенка со старой версии слишком много монет (например 100+),
-          // приведем к реалистичному балансу для новой экономики
           if (kid.coins > 50) {
             kid.coins = 20;
           }
@@ -419,6 +428,32 @@ class QuestHeroApp {
       console.warn('Ошибка чтения localStorage, загрузка defaults:', e);
     }
     return this.getInitialState();
+  }
+
+  // Пустое состояние (полный сброс в ноль без детей)
+  getEmptyState() {
+    return {
+      currentRole: 'parent',
+      activeKidId: null,
+      parent: {
+        name: 'Родители',
+        pin: '1234'
+      },
+      kids: [],
+      rewards: JSON.parse(JSON.stringify(DEFAULT_REWARDS)),
+      history: [
+        { id: 'h_' + Date.now(), time: this.getMoscowTimeString(), text: '🔄 Система сброшена в ноль. Создайте профиль первого героя в семье.', type: 'info' }
+      ],
+      settings: {
+        pin: '1234',
+        theme: 'hero',
+        sound: true,
+        weeklyMilestones: {
+          phoneTarget: 10,
+          pcTarget: 20
+        }
+      }
+    };
   }
 
   getInitialState() {
@@ -620,13 +655,23 @@ class QuestHeroApp {
   }
 
   resetAllProgress() {
-    if (confirm('Внимание! Это сбросит весь прогресс, монеты и уровень к начальным настройкам. Продолжить?')) {
+    if (confirm('Внимание! Это полностью сбросит всё в ноль: удалит всех детей, историю, балансы и вернет абсолютно чистый интерфейс.\n\nПродолжить полный сброс в ноль?')) {
       localStorage.removeItem(STORAGE_KEY);
-      this.state = this.getInitialState();
+      this.state = this.getEmptyState();
       this.saveState();
+      this.showParentView();
+      this.switchParentTab('kids');
       this.render();
-      alert('Весь прогресс успешно сброшен к началу!');
+      alert('Интерфейс успешно сброшен в ноль! Профили детей удалены.');
     }
+  }
+
+  showParentView() {
+    this.state.currentRole = 'parent';
+    const kv = document.getElementById('kidView');
+    const pv = document.getElementById('parentView');
+    if (kv) kv.classList.remove('active');
+    if (pv) pv.classList.add('active');
   }
 
   // ------------------------------------------------------------------------
@@ -1199,18 +1244,22 @@ class QuestHeroApp {
     this.triggerConfetti();
     this.addHistory(`⭐ ${reason} (+${coins} 🪙, +1 ⭐ токен, +${xp} XP)`);
 
-    // Проверка открытия наград недели (10 заданий — телефон, 20 заданий — ПК)
-    if (kid.weekTokens === 10) {
+    // Проверка открытия наград недели (по целям из настроек)
+    const milestones = (this.state.settings && this.state.settings.weeklyMilestones) || { phoneTarget: 10, pcTarget: 20 };
+    const phoneTarget = milestones.phoneTarget || 10;
+    const pcTarget = milestones.pcTarget || 20;
+
+    if (kid.weekTokens === phoneTarget) {
       setTimeout(() => {
         this.playSound('levelUp');
         this.triggerConfetti();
-        alert(`🎉 ПОЗДРАВЛЯЕМ, ${kid.name}!\n\nВыполнено 10 заданий за неделю!\n📱 Доступ к ТЕЛЕФОНУ на следующую неделю РАЗБЛОКИРОВАН!`);
+        alert(`🎉 ПОЗДРАВЛЯЕМ, ${kid.name}!\n\nВыполнено ${phoneTarget} заданий за неделю!\n📱 Доступ к ТЕЛЕФОНУ на следующую неделю РАЗБЛОКИРОВАН!`);
       }, 350);
-    } else if (kid.weekTokens === 20) {
+    } else if (kid.weekTokens === pcTarget) {
       setTimeout(() => {
         this.playSound('levelUp');
         this.triggerConfetti();
-        alert(`🚀 НЕВЕРОЯТНЫЙ ПОДВИГ, ${kid.name}!\n\nВыполнено 20 заданий за неделю!\n💻 Доступ к КОМПЬЮТЕРУ на следующую неделю РАЗБЛОКИРОВАН! 👑`);
+        alert(`🚀 НЕВЕРОЯТНЫЙ ПОДВИГ, ${kid.name}!\n\nВыполнено ${pcTarget} заданий за неделю!\n💻 Доступ к КОМПЬЮТЕРУ на следующую неделю РАЗБЛОКИРОВАН! 👑`);
       }, 350);
     }
   }
@@ -2041,17 +2090,17 @@ class QuestHeroApp {
   }
 
   deleteKid(kidId) {
-    if (this.state.kids.length <= 1) {
-      alert('В семье должен оставаться хотя бы один ребёнок!');
-      return;
-    }
     const kid = this.state.kids.find(k => k.id === kidId);
     if (!kid) return;
 
     if (confirm(`Вы уверены, что хотите удалить профиль «${kid.name}» и все его квесты?`)) {
       this.state.kids = this.state.kids.filter(k => k.id !== kidId);
-      if (this.state.activeKidId === kidId) {
-        this.state.activeKidId = this.state.kids[0].id;
+      if (this.state.kids.length > 0) {
+        if (this.state.activeKidId === kidId) {
+          this.state.activeKidId = this.state.kids[0].id;
+        }
+      } else {
+        this.state.activeKidId = null;
       }
       this.addHistory(`🗑️ Удалён профиль ребёнка: ${kid.name}`);
       this.saveState();
@@ -2199,8 +2248,22 @@ class QuestHeroApp {
   // РЕНДЕРИНГ ВСЕХ ЭЛЕМЕНТОВ ИНТЕРФЕЙСА
   // ------------------------------------------------------------------------
   render() {
+    const hasKids = this.state.kids && this.state.kids.length > 0;
+    const emptyBanner = document.getElementById('emptyFamilyBanner');
+    const contentWrapper = document.getElementById('kidContentWrapper');
+    if (emptyBanner && contentWrapper) {
+      if (hasKids) {
+        emptyBanner.style.display = 'none';
+        contentWrapper.style.display = 'block';
+      } else {
+        emptyBanner.style.display = 'block';
+        contentWrapper.style.display = 'none';
+      }
+    }
+
     this.renderHeader();
     this.renderProfile();
+    this.renderCurrentWeekAccess();
     this.renderWeeklyTracker();
     this.renderTasks();
     this.renderShop();
@@ -2208,6 +2271,71 @@ class QuestHeroApp {
     this.renderBadges();
     this.renderParentView();
     this.updateMidnightCountdown();
+  }
+
+  // ------------------------------------------------------------------------
+  // КАРТОЧКА: ДОСТУП К УСТРОЙСТВАМ НА ЭТУ НЕДЕЛЮ (ДЕТСКИЙ ИНТЕРФЕЙС)
+  // ------------------------------------------------------------------------
+  renderCurrentWeekAccess() {
+    const kid = this.getActiveKid();
+    const section = document.getElementById('currentWeekAccessCard');
+    if (!section) return;
+
+    if (!kid) {
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = 'block';
+
+    const weekInfo = this.getWeekInfo();
+    const datesEl = document.getElementById('cwacWeekDates');
+    if (datesEl) {
+      datesEl.textContent = `Пн — Вс (${weekInfo.rangeLabel})`;
+    }
+
+    const phoneActive = (kid.accessStatus && kid.accessStatus.parentOverridePhone !== null)
+      ? kid.accessStatus.parentOverridePhone
+      : (kid.accessStatus ? kid.accessStatus.phoneCurrentWeek : false);
+
+    const pcActive = (kid.accessStatus && kid.accessStatus.parentOverridePc !== null)
+      ? kid.accessStatus.parentOverridePc
+      : (kid.accessStatus ? kid.accessStatus.pcCurrentWeek : false);
+
+    const phoneCard = document.getElementById('cwacPhoneCard');
+    const phoneStatus = document.getElementById('cwacPhoneStatus');
+    const phoneDesc = document.getElementById('cwacPhoneDesc');
+
+    if (phoneCard && phoneStatus && phoneDesc) {
+      if (phoneActive) {
+        phoneCard.className = 'cwac-device-card unlocked';
+        phoneStatus.textContent = 'РАЗБЛОКИРОВАН ✅';
+        phoneStatus.className = 'cwac-dev-pill unlocked';
+        phoneDesc.textContent = 'Доступ открыт на всю эту неделю! Приятного использования.';
+      } else {
+        phoneCard.className = 'cwac-device-card locked';
+        phoneStatus.textContent = 'ЗАБЛОКИРОВАН 🔒';
+        phoneStatus.className = 'cwac-dev-pill locked';
+        phoneDesc.textContent = 'Не набрано нужное количество заданий на прошлой неделе или выключено родителями.';
+      }
+    }
+
+    const pcCard = document.getElementById('cwacPcCard');
+    const pcStatus = document.getElementById('cwacPcStatus');
+    const pcDesc = document.getElementById('cwacPcDesc');
+
+    if (pcCard && pcStatus && pcDesc) {
+      if (pcActive) {
+        pcCard.className = 'cwac-device-card unlocked';
+        pcStatus.textContent = 'РАЗБЛОКИРОВАН ✅';
+        pcStatus.className = 'cwac-dev-pill unlocked';
+        pcDesc.textContent = 'Доступ открыт на всю эту неделю! Приятной игры и работы.';
+      } else {
+        pcCard.className = 'cwac-device-card locked';
+        pcStatus.textContent = 'ЗАБЛОКИРОВАН 🔒';
+        pcStatus.className = 'cwac-dev-pill locked';
+        pcDesc.textContent = 'Не набрано нужное количество заданий на прошлой неделе или выключено родителями.';
+      }
+    }
   }
 
   renderHeader() {
@@ -2540,54 +2668,70 @@ class QuestHeroApp {
 
     const pBal = document.getElementById('parentCurrentBalance');
     if (pBal) {
-      if (filter === 'all') {
+      if (relevantKids.length === 0) {
+        pBal.textContent = `0 🪙`;
+      } else if (filter === 'all') {
         const totalCoins = this.state.kids.reduce((sum, k) => sum + (k.coins || 0), 0);
         pBal.textContent = `${totalCoins} 🪙`;
       } else {
-        pBal.textContent = `${relevantKids[0].coins || 0} 🪙`;
+        pBal.textContent = `${(relevantKids[0] && relevantKids[0].coins) || 0} 🪙`;
       }
     }
 
     const pLvl = document.getElementById('parentCurrentLevel');
     const pXp = document.getElementById('parentCurrentXP');
     if (pLvl) {
-      if (filter === 'all') {
+      if (relevantKids.length === 0) {
+        pLvl.textContent = `0 героев`;
+        if (pXp) pXp.textContent = `Добавьте ребенка`;
+      } else if (filter === 'all') {
         pLvl.textContent = `Героев: ${this.state.kids.length}`;
         if (pXp) pXp.textContent = `Вся семья`;
       } else {
-        pLvl.textContent = `Уровень ${relevantKids[0].level || 1}`;
-        if (pXp) pXp.textContent = `${relevantKids[0].xp || 0} / ${relevantKids[0].xpNext || 100} XP`;
+        const selKid = relevantKids[0];
+        pLvl.textContent = `Уровень ${(selKid && selKid.level) || 1}`;
+        if (pXp) pXp.textContent = `${(selKid && selKid.xp) || 0} / ${(selKid && selKid.xpNext) || 100} XP`;
       }
     }
 
     const pStreak = document.getElementById('parentStreakCount');
     if (pStreak) {
-      if (filter === 'all') {
-        const maxStreak = Math.max(...this.state.kids.map(k => k.streak || 1));
+      if (relevantKids.length === 0) {
+        pStreak.textContent = 0;
+      } else if (filter === 'all') {
+        const streaks = this.state.kids.map(k => k.streak || 1);
+        const maxStreak = streaks.length > 0 ? Math.max(...streaks) : 0;
         pStreak.textContent = maxStreak;
       } else {
-        pStreak.textContent = relevantKids[0].streak || 1;
+        pStreak.textContent = (relevantKids[0] && relevantKids[0].streak) || 1;
       }
     }
 
     // Недельные токены в сводке родителя
     const pWeekTasksEl = document.getElementById('parentWeekTasksCount');
     const pWeekAccessEl = document.getElementById('parentWeekAccessStatus');
+    const pcGoal = (this.state.settings && this.state.settings.weeklyMilestones && this.state.settings.weeklyMilestones.pcTarget) || 20;
     if (pWeekTasksEl) {
-      if (filter === 'all') {
-        const maxTokens = Math.max(...this.state.kids.map(k => k.weekTokens || 0));
-        pWeekTasksEl.textContent = `${maxTokens} / 20 ⭐`;
+      if (relevantKids.length === 0) {
+        pWeekTasksEl.textContent = `0 / ${pcGoal} ⭐`;
+        if (pWeekAccessEl) pWeekAccessEl.textContent = `Нет детей`;
+      } else if (filter === 'all') {
+        const tokensArr = this.state.kids.map(k => k.weekTokens || 0);
+        const maxTokens = tokensArr.length > 0 ? Math.max(...tokensArr) : 0;
+        pWeekTasksEl.textContent = `${maxTokens} / ${pcGoal} ⭐`;
         if (pWeekAccessEl) pWeekAccessEl.textContent = `Вся семья (макс. ${maxTokens} ⭐)`;
       } else {
         const selKid = relevantKids[0];
-        pWeekTasksEl.textContent = `${selKid.weekTokens || 0} / 20 ⭐`;
-        const phone = (selKid.accessStatus && selKid.accessStatus.parentOverridePhone !== null)
-          ? selKid.accessStatus.parentOverridePhone
-          : (selKid.accessStatus ? selKid.accessStatus.phoneCurrentWeek : false);
-        const pc = (selKid.accessStatus && selKid.accessStatus.parentOverridePc !== null)
-          ? selKid.accessStatus.parentOverridePc
-          : (selKid.accessStatus ? selKid.accessStatus.pcCurrentWeek : false);
-        if (pWeekAccessEl) pWeekAccessEl.textContent = `📱 ${phone ? 'ВКЛ' : 'ВЫКЛ'} · 💻 ${pc ? 'ВКЛ' : 'ВЫКЛ'}`;
+        if (selKid) {
+          pWeekTasksEl.textContent = `${selKid.weekTokens || 0} / ${pcGoal} ⭐`;
+          const phone = (selKid.accessStatus && selKid.accessStatus.parentOverridePhone !== null)
+            ? selKid.accessStatus.parentOverridePhone
+            : (selKid.accessStatus ? selKid.accessStatus.phoneCurrentWeek : false);
+          const pc = (selKid.accessStatus && selKid.accessStatus.parentOverridePc !== null)
+            ? selKid.accessStatus.parentOverridePc
+            : (selKid.accessStatus ? selKid.accessStatus.pcCurrentWeek : false);
+          if (pWeekAccessEl) pWeekAccessEl.textContent = `📱 ${phone ? 'ВКЛ' : 'ВЫКЛ'} · 💻 ${pc ? 'ВКЛ' : 'ВЫКЛ'}`;
+        }
       }
     }
 
@@ -2718,10 +2862,21 @@ class QuestHeroApp {
     // 10. Настройки
     const settingNameInput = document.getElementById('settingHeroName');
     const activeKid = this.getActiveKid();
-    if (settingNameInput && activeKid) settingNameInput.value = activeKid.name || '';
+    if (settingNameInput) settingNameInput.value = (activeKid && activeKid.name) || '';
 
     const themeSelect = document.getElementById('parentThemeSelect');
     if (themeSelect) themeSelect.value = this.state.settings.theme || 'hero';
+
+    // 10.1 Настройка целей полоски наград (на следующую неделю)
+    const milestones = (this.state.settings && this.state.settings.weeklyMilestones) || { phoneTarget: 10, pcTarget: 20 };
+    const inputPhone = document.getElementById('settingMilestonePhone');
+    const inputPc = document.getElementById('settingMilestonePc');
+    if (inputPhone && document.activeElement !== inputPhone) {
+      inputPhone.value = milestones.phoneTarget || 10;
+    }
+    if (inputPc && document.activeElement !== inputPc) {
+      inputPc.value = milestones.pcTarget || 20;
+    }
 
     // 11. Система штрафов и ручной контроль устройств
     this.renderPenaltiesTab();
@@ -2730,6 +2885,18 @@ class QuestHeroApp {
   renderParentKidsList() {
     const list = document.getElementById('parentKidsList');
     if (!list || !this.state.kids) return;
+
+    if (this.state.kids.length === 0) {
+      list.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 2.5rem 1rem; background: var(--c-surface); border: 2px dashed var(--c-border); border-radius: var(--radius-lg);">
+          <div style="font-size: 3rem; margin-bottom: 0.75rem;">🦸‍♂️</div>
+          <h3 style="margin-bottom: 0.5rem; font-family: var(--font-heading);">Нет добавленных детей</h3>
+          <p style="color: var(--c-text-muted); font-size: 0.95rem; margin-bottom: 1.25rem;">Сейчас система находится в чистом состоянии (0 детей). Создайте профиль первого героя!</p>
+          <button class="primary-btn" onclick="app.openInviteKidModal()">➕ Добавить первого героя в семью</button>
+        </div>
+      `;
+      return;
+    }
 
     list.innerHTML = this.state.kids.map(kid => {
       const isActive = kid.id === this.state.activeKidId;
@@ -2784,11 +2951,9 @@ class QuestHeroApp {
             <button class="secondary-btn btn-small" onclick="app.openInviteKidModal('${kid.id}')">
               <span>✏️</span>
             </button>
-            ${this.state.kids.length > 1 ? `
-              <button class="secondary-btn btn-small" style="color: #f87171;" onclick="app.deleteKid('${kid.id}')">
-                <span>🗑️</span>
-              </button>
-            ` : ''}
+            <button class="secondary-btn btn-small" style="color: #f87171;" onclick="app.deleteKid('${kid.id}')" title="Удалить профиль">
+              <span>🗑️</span>
+            </button>
           </div>
         </div>
       `;
@@ -2825,7 +2990,12 @@ class QuestHeroApp {
   // ------------------------------------------------------------------------
   renderWeeklyTracker() {
     const kid = this.getActiveKid();
-    if (!kid) return;
+    const trackerSection = document.getElementById('weeklyTrackerSection');
+    if (!kid) {
+      if (trackerSection) trackerSection.style.display = 'none';
+      return;
+    }
+    if (trackerSection) trackerSection.style.display = 'block';
 
     const weekInfo = this.getWeekInfo();
     const datesEl = document.getElementById('weeklyDatesRange');
@@ -2837,52 +3007,54 @@ class QuestHeroApp {
     const tokensCountEl = document.getElementById('weeklyTokensCount');
     if (tokensCountEl) tokensCountEl.textContent = tokensNum;
 
-    // Статус доступа НА ЭТУ НЕДЕЛЮ (по итогам прошлой недели)
-    const phoneActive = (kid.accessStatus && kid.accessStatus.parentOverridePhone !== null)
-      ? kid.accessStatus.parentOverridePhone
-      : (kid.accessStatus ? kid.accessStatus.phoneCurrentWeek : false);
+    // Чтение динамических целей полоски наград из настроек родителя
+    const milestones = (this.state.settings && this.state.settings.weeklyMilestones) || { phoneTarget: 10, pcTarget: 20 };
+    const phoneTarget = Number(milestones.phoneTarget) || 10;
+    const pcTarget = Math.max(phoneTarget + 1, Number(milestones.pcTarget) || 20);
 
-    const pcActive = (kid.accessStatus && kid.accessStatus.parentOverridePc !== null)
-      ? kid.accessStatus.parentOverridePc
-      : (kid.accessStatus ? kid.accessStatus.pcCurrentWeek : false);
+    // Обновление подписей и пинов
+    const msPhonePin = document.getElementById('msPhonePin');
+    const msPhoneTitle = document.getElementById('msPhoneTitle');
+    const msPcPin = document.getElementById('msPcPin');
+    const msPcTitle = document.getElementById('msPcTitle');
 
-    const phoneStatusText = document.getElementById('wcaPhoneStatusText');
-    const pcStatusText = document.getElementById('wcaPcStatusText');
-    if (phoneStatusText) {
-      phoneStatusText.textContent = phoneActive ? 'Разблокирован ✅' : 'Заблокирован 🔒';
-      phoneStatusText.className = `wca-status ${phoneActive ? 'status-active' : 'status-locked'}`;
+    if (msPhonePin) msPhonePin.textContent = phoneTarget;
+    if (msPhoneTitle) msPhoneTitle.textContent = `${phoneTarget} заданий`;
+    if (msPcPin) msPcPin.textContent = pcTarget;
+    if (msPcTitle) msPcTitle.textContent = `${pcTarget} заданий`;
+
+    // Динамическое позиционирование майлстоуна телефона на шкале
+    const msPhoneNode = document.getElementById('msPhoneNode');
+    if (msPhoneNode) {
+      const phonePercent = Math.min(88, Math.max(12, Math.round((phoneTarget / pcTarget) * 100)));
+      msPhoneNode.style.left = `${phonePercent}%`;
     }
-    if (pcStatusText) {
-      pcStatusText.textContent = pcActive ? 'Разблокирован ✅' : 'Заблокирован 🔒';
-      pcStatusText.className = `wca-status ${pcActive ? 'status-active' : 'status-locked'}`;
-    }
 
-    // Прогресс квестов на следующую неделю (шкала от 0 до 20)
+    // Прогресс квестов на следующую неделю (шкала от 0 до pcTarget)
     const ratioEl = document.getElementById('weeklyProgressRatio');
-    if (ratioEl) ratioEl.textContent = `${tokensNum} / 20 заданий`;
+    if (ratioEl) ratioEl.textContent = `${tokensNum} / ${pcTarget} заданий`;
 
     const fillEl = document.getElementById('weeklyTrackFill');
     if (fillEl) {
-      const pct = Math.min(100, Math.round((tokensNum / 20) * 100));
+      const pct = Math.min(100, Math.round((tokensNum / pcTarget) * 100));
       fillEl.style.width = `${pct}%`;
     }
 
-    // Майлстоун 10 заданий: Телефон
-    const msPhoneNode = document.getElementById('msPhoneNode');
+    // Майлстоун: Телефон
     const msPhoneStatus = document.getElementById('msPhoneStatus');
-    const phoneUnlocked = tokensNum >= 10;
+    const phoneUnlocked = tokensNum >= phoneTarget;
     if (msPhoneNode) msPhoneNode.classList.toggle('unlocked', phoneUnlocked);
     if (msPhoneStatus) {
-      msPhoneStatus.textContent = phoneUnlocked ? '✨ Разблокировано! 🎉' : `🔒 Осталось ${10 - tokensNum}`;
+      msPhoneStatus.textContent = phoneUnlocked ? '✨ Разблокировано! 🎉' : `🔒 Осталось ${Math.max(0, phoneTarget - tokensNum)}`;
     }
 
-    // Майлстоун 20 заданий: Компьютер
+    // Майлстоун: Компьютер
     const msPcNode = document.getElementById('msPcNode');
     const msPcStatus = document.getElementById('msPcStatus');
-    const pcUnlocked = tokensNum >= 20;
+    const pcUnlocked = tokensNum >= pcTarget;
     if (msPcNode) msPcNode.classList.toggle('unlocked', pcUnlocked);
     if (msPcStatus) {
-      msPcStatus.textContent = pcUnlocked ? '✨ Разблокировано! 🚀' : `🔒 Осталось ${20 - tokensNum}`;
+      msPcStatus.textContent = pcUnlocked ? '✨ Разблокировано! 🚀' : `🔒 Осталось ${Math.max(0, pcTarget - tokensNum)}`;
     }
 
     // Таблица выполненных заданий недели
@@ -2920,13 +3092,13 @@ class QuestHeroApp {
             <div class="wt-ci-left">
               <span class="wt-ci-icon">${item.icon || '⭐'}</span>
               <div>
-                <div class="wt-ci-title">${item.title}</div>
-                <div class="wt-ci-meta">${item.date || ''} в ${item.time || ''}</div>
+                <strong>${item.title}</strong>
+                <span class="wt-ci-time">${item.dayShort}, ${item.date} в ${item.time}</span>
               </div>
             </div>
-            <div class="wt-ci-rewards">
-              <span class="reward-tag coins">+${item.coins} 🪙</span>
-              <span class="reward-tag" style="background: rgba(56, 189, 248, 0.2); color: var(--c-sky);">+1 ⭐</span>
+            <div class="wt-ci-right">
+              <span class="text-gold">+${item.coins} 🪙</span>
+              <span class="text-sky">+1 ⭐ токен</span>
             </div>
           </div>
         `).join('');
@@ -2953,60 +3125,102 @@ class QuestHeroApp {
   }
 
   // ------------------------------------------------------------------------
+  // НАСТРОЙКИ ПОЛОСКИ НАГРАД (СЛЕДУЮЩАЯ НЕДЕЛЯ)
+  // ------------------------------------------------------------------------
+  saveWeeklyMilestoneSettings() {
+    const phoneInput = document.getElementById('settingMilestonePhone');
+    const pcInput = document.getElementById('settingMilestonePc');
+    if (!phoneInput || !pcInput) return;
+
+    let phoneVal = parseInt(phoneInput.value, 10);
+    let pcVal = parseInt(pcInput.value, 10);
+
+    if (isNaN(phoneVal) || phoneVal < 1) phoneVal = 10;
+    if (isNaN(pcVal) || pcVal <= phoneVal) pcVal = Math.max(phoneVal + 1, 20);
+
+    phoneInput.value = phoneVal;
+    pcInput.value = pcVal;
+
+    if (!this.state.settings) this.state.settings = {};
+    this.state.settings.weeklyMilestones = {
+      phoneTarget: phoneVal,
+      pcTarget: pcVal
+    };
+
+    this.saveState();
+    this.render();
+    this.playSound('click');
+    alert(`Настройки полоски наград сохранены!\n📱 Телефон: ${phoneVal} заданий\n💻 Компьютер: ${pcVal} заданий`);
+    this.addHistory(`⚙️ Настройка шкалы наград: Телефон = ${phoneVal}, ПК = ${pcVal} квестов`);
+  }
+
+  // ------------------------------------------------------------------------
   // СИСТЕМА ШТРАФОВ (РОДИТЕЛЬСКИЙ ИНТЕРФЕЙС)
   // ------------------------------------------------------------------------
   renderPenaltiesTab() {
     // 1. Выбор ребенка в форме штрафа
     const sel = document.getElementById('penaltyKidSelect');
-    if (sel && this.state.kids) {
-      const currentVal = sel.value || this.state.activeKidId;
-      sel.innerHTML = this.state.kids.map(k => `
-        <option value="${k.id}" ${k.id === currentVal ? 'selected' : ''}>
-          ${k.avatar} ${k.name} (баланс: ${k.coins} 🪙, неделя: ${k.weekTokens || 0} ⭐)
-        </option>
-      `).join('');
+    if (sel) {
+      if (!this.state.kids || this.state.kids.length === 0) {
+        sel.innerHTML = '<option value="">(Сначала добавьте ребёнка в семью)</option>';
+      } else {
+        const currentVal = sel.value || this.state.activeKidId;
+        sel.innerHTML = this.state.kids.map(k => `
+          <option value="${k.id}" ${k.id === currentVal ? 'selected' : ''}>
+            ${k.avatar} ${k.name} (баланс: ${k.coins} 🪙, неделя: ${k.weekTokens || 0} ⭐)
+          </option>
+        `).join('');
+      }
     }
 
     // 2. Пульт управления доступом к устройствам для всех детей
     const accessGrid = document.getElementById('parentAccessControlsGrid');
-    if (accessGrid && this.state.kids) {
-      accessGrid.innerHTML = this.state.kids.map(kid => {
-        const phoneActive = (kid.accessStatus && kid.accessStatus.parentOverridePhone !== null)
-          ? kid.accessStatus.parentOverridePhone
-          : (kid.accessStatus ? kid.accessStatus.phoneCurrentWeek : false);
+    if (accessGrid) {
+      if (!this.state.kids || this.state.kids.length === 0) {
+        accessGrid.innerHTML = '<p style="color: var(--c-text-muted); font-size: 0.9rem; padding: 1rem 0;">Нет детей в семье. Добавьте ребёнка во вкладке «Дети».</p>';
+      } else {
+        accessGrid.innerHTML = this.state.kids.map(kid => {
+          const phoneActive = (kid.accessStatus && kid.accessStatus.parentOverridePhone !== null)
+            ? kid.accessStatus.parentOverridePhone
+            : (kid.accessStatus ? kid.accessStatus.phoneCurrentWeek : false);
 
-        const pcActive = (kid.accessStatus && kid.accessStatus.parentOverridePc !== null)
-          ? kid.accessStatus.parentOverridePc
-          : (kid.accessStatus ? kid.accessStatus.pcCurrentWeek : false);
+          const pcActive = (kid.accessStatus && kid.accessStatus.parentOverridePc !== null)
+            ? kid.accessStatus.parentOverridePc
+            : (kid.accessStatus ? kid.accessStatus.pcCurrentWeek : false);
 
-        return `
-          <div class="pacc-kid-card">
-            <div class="pacc-kid-header">
-              <span class="pacc-kid-name">${kid.avatar} ${kid.name}</span>
-              <span style="font-size: 0.8rem; color: var(--c-sky); font-weight: 700;">Неделя: ${kid.weekTokens || 0} / 20 ⭐</span>
+          const pcGoal = (this.state.settings && this.state.settings.weeklyMilestones && this.state.settings.weeklyMilestones.pcTarget) || 20;
+
+          return `
+            <div class="pacc-kid-card">
+              <div class="pacc-kid-header">
+                <span class="pacc-kid-name">${kid.avatar} ${kid.name}</span>
+                <span style="font-size: 0.8rem; color: var(--c-sky); font-weight: 700;">Неделя: ${kid.weekTokens || 0} / ${pcGoal} ⭐</span>
+              </div>
+              <div class="pacc-switches-row">
+                <button class="pacc-switch-btn ${phoneActive ? 'active' : 'inactive'}" onclick="app.toggleParentDeviceOverride('${kid.id}', 'phone')">
+                  <span>📱 Телефон:</span> <strong>${phoneActive ? 'ВКЛ ✅' : 'ВЫКЛ 🔒'}</strong>
+                </button>
+                <button class="pacc-switch-btn ${pcActive ? 'active' : 'inactive'}" onclick="app.toggleParentDeviceOverride('${kid.id}', 'pc')">
+                  <span>💻 ПК:</span> <strong>${pcActive ? 'ВКЛ ✅' : 'ВЫКЛ 🔒'}</strong>
+                </button>
+              </div>
             </div>
-            <div class="pacc-switches-row">
-              <button class="pacc-switch-btn ${phoneActive ? 'active' : 'inactive'}" onclick="app.toggleParentDeviceOverride('${kid.id}', 'phone')">
-                <span>📱 Телефон:</span> <strong>${phoneActive ? 'ВКЛ ✅' : 'ВЫКЛ 🔒'}</strong>
-              </button>
-              <button class="pacc-switch-btn ${pcActive ? 'active' : 'inactive'}" onclick="app.toggleParentDeviceOverride('${kid.id}', 'pc')">
-                <span>💻 ПК:</span> <strong>${pcActive ? 'ВКЛ ✅' : 'ВЫКЛ 🔒'}</strong>
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
+          `;
+        }).join('');
+      }
     }
 
     // 3. Таблица журнала штрафов
     const tbody = document.getElementById('parentPenaltiesTableBody');
     if (tbody) {
       let allPenalties = [];
-      this.state.kids.forEach(kid => {
-        (kid.penalties || []).forEach(p => {
-          allPenalties.push({ ...p, kidName: kid.name, kidAvatar: kid.avatar });
+      if (this.state.kids) {
+        this.state.kids.forEach(kid => {
+          (kid.penalties || []).forEach(p => {
+            allPenalties.push({ ...p, kidName: kid.name, kidAvatar: kid.avatar });
+          });
         });
-      });
+      }
 
       // Бейдж на вкладке штрафов
       const badge = document.getElementById('parentPenaltiesBadge');
@@ -3055,8 +3269,11 @@ class QuestHeroApp {
   applyPenalty() {
     const sel = document.getElementById('penaltyKidSelect');
     const kidId = sel ? sel.value : this.state.activeKidId;
-    const kid = this.state.kids.find(k => k.id === kidId) || this.getActiveKid();
-    if (!kid) return;
+    const kid = (this.state.kids && this.state.kids.find(k => k.id === kidId)) || this.getActiveKid();
+    if (!kid) {
+      alert('В семье пока нет профилей детей! Добавьте ребёнка во вкладке «Дети».');
+      return;
+    }
 
     const coinsInput = document.getElementById('penaltyCoinsInput');
     const amount = Math.max(1, Math.min(10, parseInt(coinsInput ? coinsInput.value : 2, 10) || 2));

@@ -20,31 +20,39 @@
   <!-- Верхняя панель (Хедер) -->
   <header class="header">
     <div class="header-container">
-      <div class="logo-area" onclick="app.showLandingView()" style="cursor: pointer;" title="О сервисе «КвестГерой»">
-        <img src="assets/icons/logo.png" alt="КвестГерой" class="header-logo-image">
-        <div>
-          <h1 class="logo-title">КвестГерой</h1>
-          <p class="logo-subtitle">Прокачай свой день!</p>
+      <div class="header-main-bar">
+        <div class="logo-area" onclick="app.showLandingView()" style="cursor: pointer;" title="О сервисе «КвестГерой»">
+          <img src="assets/icons/logo.png" alt="КвестГерой" class="header-logo-image">
+          <div>
+            <h1 class="logo-title">КвестГерой</h1>
+            <p class="logo-subtitle">Прокачай свой день!</p>
+          </div>
         </div>
-      </div>
 
-      <!-- Переключатель режима лендинг / игра -->
-      <nav class="header-nav-group">
-        <button class="nav-view-btn" id="navLandingBtn" onclick="app.showLandingView()">
-          <span>🌟</span> О сервисе
+        <!-- Переключатель режима лендинг / игра -->
+        <nav class="header-nav-group" id="headerNavGroup">
+          <button class="nav-view-btn" id="navLandingBtn" onclick="app.showLandingView()">
+            <span>🌟</span> О сервисе
+          </button>
+          <button class="nav-view-btn active" id="navKidBtn" onclick="app.showKidView()">
+            <span>🎮</span> Играть
+          </button>
+        </nav>
+
+        <!-- Переключатель Режима (Детский / Родительский) -->
+        <button class="mode-btn" id="parentModeBtn" onclick="app.openParentLoginFlow()">
+          <span class="lock-icon">🔒</span>
+          <span class="btn-text">Родителям</span>
         </button>
-        <button class="nav-view-btn active" id="navKidBtn" onclick="app.showKidView()">
-          <span>🎮</span> Играть
-        </button>
-      </nav>
+      </div>
 
       <!-- Баланс и Статусы -->
       <div class="header-stats">
         <!-- Активный профиль / Переключатель входа -->
-        <button class="user-profile-badge" id="headerUserBadge" onclick="app.openLoginModal()" title="Сменить профиль или войти">
+        <button class="user-profile-badge" id="headerUserBadge" onclick="app.handleUserBadgeClick()" title="Профиль героя">
           <span class="user-badge-avatar" id="headerUserAvatar">🦁</span>
           <span class="user-badge-name" id="headerUserName">Артём</span>
-          <span class="user-badge-arrow">▾</span>
+          <span class="user-badge-arrow" id="headerUserArrow">▾</span>
         </button>
 
         <!-- Стрик (Дни подряд) -->
@@ -75,12 +83,6 @@
         <!-- Звук переключатель -->
         <button class="icon-btn" id="soundToggleBtn" onclick="app.toggleSound()" title="Включить / Выключить звук">
           <span id="soundIcon">🔊</span>
-        </button>
-
-        <!-- Переключатель Режима (Детский / Родительский) -->
-        <button class="mode-btn" id="parentModeBtn" onclick="app.openParentLoginFlow()">
-          <span class="lock-icon">🔒</span>
-          <span class="btn-text">Родителям</span>
         </button>
       </div>
     </div>
@@ -1715,6 +1717,61 @@
               Или войти через PIN-код (офлайн демо)
             </button>
           </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Регистрация юного героя (Child Onboarding) -->
+  <div class="modal-overlay" id="childOnboardingModal">
+    <div class="modal-box child-onboarding-box">
+      <div class="child-onboarding-header">
+        <span class="co-badge">🎉 Твоё приключение начинается!</span>
+        <h2>Создай своего Героя!</h2>
+        <p class="co-subtitle">Родители пригласили тебя в «КвестГерой». Введи своё имя и выбери супер-аватарку, чтобы начать выполнять квесты и открывать телефон и компьютер на следующую неделю!</p>
+      </div>
+
+      <form id="childOnboardingForm" onsubmit="app.completeChildOnboarding(event)">
+        <input type="hidden" id="onboardingInviteCode" value="">
+
+        <div class="form-group">
+          <label>Твоё имя (или геройский никнейм):</label>
+          <input type="text" id="onboardingKidName" placeholder="Например: Артём или Капитан Молния" required class="form-input text-center" style="font-size: 1.15rem; font-weight: 800; border-color: var(--c-accent);">
+        </div>
+
+        <div class="form-group">
+          <label>Выбери своего супергероя (аватарку):</label>
+          <div class="onboarding-avatar-grid" id="onboardingAvatarGrid">
+            <!-- JS fills: 🦁, 🦊, 🚀, 🦸‍♂️, 🦸‍♀️, 🥷, 🤖, 🦄, 🦖, 🐼, 🐯, ⚡, 🌟, 🎮, 👑 -->
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>В каком стиле будем играть (тема):</label>
+          <div class="onboarding-theme-grid">
+            <button type="button" class="onboarding-theme-card active" data-theme="hero" onclick="app.selectOnboardingTheme('hero', this)">
+              <span class="ot-icon">⚡</span>
+              <span class="ot-name">Супергерой</span>
+            </button>
+            <button type="button" class="onboarding-theme-card" data-theme="minecraft" onclick="app.selectOnboardingTheme('minecraft', this)">
+              <span class="ot-icon">⛏️</span>
+              <span class="ot-name">Minecraft</span>
+            </button>
+            <button type="button" class="onboarding-theme-card" data-theme="roblox" onclick="app.selectOnboardingTheme('roblox', this)">
+              <span class="ot-icon">🕹️</span>
+              <span class="ot-name">Roblox</span>
+            </button>
+            <button type="button" class="onboarding-theme-card" data-theme="brawl" onclick="app.selectOnboardingTheme('brawl', this)">
+              <span class="ot-icon">🏆</span>
+              <span class="ot-name">Brawl Stars</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="margin-top: 1.5rem; justify-content: center;">
+          <button type="submit" class="primary-btn btn-full pulse-anim" style="font-size: 1.15rem; padding: 1rem 2rem;">
+            <span>🚀</span> В бой! Начать приключение!
+          </button>
         </div>
       </form>
     </div>

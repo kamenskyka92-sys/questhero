@@ -1171,6 +1171,26 @@ class QuestHeroApp {
   async initSupabaseAuth() {
     if (!this.supabase) return;
     try {
+      // 1. Проверяем токен активации из email подтверждения (#access_token=... или ?code=...)
+      if (window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('type=signup') || window.location.hash.includes('type=recovery'))) {
+        try {
+          const { data, error } = await this.supabase.auth.getSession();
+          if (data && data.session && data.session.user) {
+            this.supabaseUser = data.session.user;
+            this.updateParentCloudBadge();
+            await this.syncKidsFromSupabase();
+            this.showParentView();
+            this.renderParentView();
+            alert('🎉 Ваш email успешно подтверждён! Вы вошли в родительский кабинет.');
+            window.history.replaceState(null, '', window.location.pathname);
+            return;
+          }
+        } catch (e) {
+          console.warn('Auth redirect token error:', e);
+        }
+      }
+
+      // 2. Стандартное получение активной сессии
       const { data, error } = await this.supabase.auth.getSession();
       if (data && data.session && data.session.user) {
         this.supabaseUser = data.session.user;
@@ -1180,15 +1200,38 @@ class QuestHeroApp {
       } else {
         this.updateParentCloudBadge();
       }
+
+      // 3. Реактивный слушатель событий авторизации
+      this.supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session && session.user) {
+          this.supabaseUser = session.user;
+          this.updateParentCloudBadge();
+          await this.syncKidsFromSupabase();
+        } else if (event === 'SIGNED_OUT') {
+          this.supabaseUser = null;
+          this.updateParentCloudBadge();
+        }
+      });
     } catch (err) {
       console.warn('Supabase getSession error:', err);
       this.updateParentCloudBadge();
     }
   }
 
+  handleUserBadgeClick() {
+    if (this.isChildMode) {
+      // На детском телефоне запрещаем переключение между пользователями!
+      // Разрешаем только сменить свою аватарку
+      this.openModal('avatarModal');
+      this.playSound('click');
+    } else {
+      this.openLoginModal();
+    }
+  }
+
   openParentLoginFlow() {
     if (this.isChildMode) {
-      alert('📱 Этот телефон настроен как устройство героя. Родительский кабинет здесь заблокирован.');
+      alert('📱 Этот телефон настроен как личное устройство героя. Родительский кабинет здесь заблокирован.');
       return;
     }
     if (this.supabaseUser) {
@@ -1219,10 +1262,10 @@ class QuestHeroApp {
 
     if (tab === 'login') {
       if (submitBtn) submitBtn.innerHTML = '<span>🔐</span> Войти в кабинет';
-      if (hintText) hintText.textContent = 'Войдите в аккаунт семьи для синхронизации квестов и наград с телефоном ребёнка.';
+      if (hintText) hintText.textContent = 'Войдите в аккаунт семьи для управления заданиями и синхронизации с телефоном ребёнка.';
     } else {
       if (submitBtn) submitBtn.innerHTML = '<span>✨</span> Зарегистрировать семью';
-      if (hintText) hintText.textContent = 'Создайте защищённый аккаунт родителя. Затем добавьте детей и отправьте им персональные ссылки.';
+      if (hintText) hintText.textContent = 'Создайте защищённый аккаунт родителя. После этого вы сможете отправлять детям ссылки на вход.';
     }
   }
 
@@ -1254,8 +1297,16 @@ class QuestHeroApp {
     if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span>⏳</span> Загрузка...'; }
 
     try {
+      const redirectUrl = window.location.origin + window.location.pathname;
+
       if (this.authMode === 'register') {
-        const { data, error } = await this.supabase.auth.signUp({ email, password });
+        const { data, error } = await this.supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: redirectUrl
+          }
+        });
         if (error) throw error;
 
         if (data.session) {
@@ -1270,7 +1321,13 @@ class QuestHeroApp {
           alert(`🎉 Добро пожаловать! Аккаунт родителя (${email}) успешно создан.`);
         } else {
           if (succBox) {
-            succBox.textContent = '✅ Регистрация успешна! Если на почту поступит письмо с подтверждением — подтвердите и выполните вход.';
+            succBox.innerHTML = `
+              <strong>✅ Письмо отправлено на ${email}!</strong><br>
+              Перейдите по ссылке в письме для входа.<br>
+              <small style="opacity: 0.85; display:block; margin-top:0.35rem;">
+                💡 Если ссылка в письме не открывается: в настройках Supabase отключите подтверждение почты (Authentication ➔ Providers ➔ Email ➔ выключить «Confirm email»), и вход будет работать мгновенно без писем!
+              </small>
+            `;
             succBox.style.display = 'block';
           }
         }
@@ -1295,6 +1352,7 @@ class QuestHeroApp {
         if (msg.includes('Invalid login credentials')) msg = 'Неверный email или пароль.';
         if (msg.includes('User already registered')) msg = 'Пользователь с таким email уже существует. Переключитесь на «Вход».';
         if (msg.includes('Password should be')) msg = 'Пароль должен содержать минимум 6 символов.';
+        if (msg.includes('Email not confirmed')) msg = 'Email ещё не подтверждён. Проверьте почту или отключите Confirm Email в панели Supabase.';
         errBox.textContent = msg;
         errBox.style.display = 'block';
       }
@@ -1339,6 +1397,9 @@ class QuestHeroApp {
     }
   }
 
+  // ------------------------------------------------------------------------
+  // РЕГИСТРАЦИЯ И ОНБОРДИНГ РЕБЁНКА ПО ССЫЛКЕ РОДИТЕЛЯ
+  // ------------------------------------------------------------------------
   async activateChildMode(inviteCode) {
     this.isChildMode = true;
     localStorage.setItem('questhero_child_code', inviteCode);
@@ -1349,6 +1410,12 @@ class QuestHeroApp {
     document.querySelectorAll('.hero-cta-parent, .btn-cta-outline, .parent-role-card').forEach(el => {
       el.style.setProperty('display', 'none', 'important');
     });
+
+    const navLanding = document.getElementById('navLandingBtn');
+    if (navLanding) navLanding.style.display = 'none';
+
+    const headerArrow = document.getElementById('headerUserArrow');
+    if (headerArrow) headerArrow.style.display = 'none';
 
     let foundKid = null;
     if (this.supabase) {
@@ -1368,7 +1435,6 @@ class QuestHeroApp {
             this.state.weeklyMilestones = dbMilestones;
           }
 
-          let localKid = this.state.kids.find(k => k.id === kid.id);
           const parsedTasks = (dbTasks && dbTasks.length > 0) ? dbTasks.map(t => ({
             id: t.id.replace(`${kid.id}_`, ''),
             title: t.title,
@@ -1381,32 +1447,26 @@ class QuestHeroApp {
             completedAt: t.completed_at
           })) : JSON.parse(JSON.stringify(DEFAULT_TASKS));
 
-          if (!localKid) {
-            localKid = {
-              id: kid.id,
-              name: kid.name,
-              avatar: kid.avatar || '🦁',
-              avatarPhoto: null,
-              inviteCode: kid.invite_code,
-              coins: kid.coins || 0,
-              weekTokens: kid.week_tokens || 0,
-              streak: kid.streak || 1,
-              level: kid.level || 1,
-              xp: kid.xp || 0,
-              xpNext: (kid.level || 1) * 100,
-              accessStatus: kid.access_status || {},
-              tasks: parsedTasks,
-              coupons: [],
-              badges: JSON.parse(JSON.stringify(DEFAULT_BADGES))
-            };
-            this.state.kids.push(localKid);
-          } else {
-            localKid.coins = kid.coins;
-            localKid.weekTokens = kid.week_tokens;
-            localKid.streak = kid.streak || 1;
-            localKid.accessStatus = kid.access_status || {};
-            localKid.tasks = parsedTasks;
-          }
+          // На телефоне ребенка изолируем ТОЛЬКО его личный профиль
+          const myProfile = {
+            id: kid.id,
+            name: kid.name || 'Герой',
+            avatar: kid.avatar || '🦁',
+            avatarPhoto: null,
+            inviteCode: kid.invite_code,
+            coins: kid.coins || 0,
+            weekTokens: kid.week_tokens || 0,
+            streak: kid.streak || 1,
+            level: kid.level || 1,
+            xp: kid.xp || 0,
+            xpNext: (kid.level || 1) * 100,
+            accessStatus: kid.access_status || {},
+            tasks: parsedTasks,
+            coupons: [],
+            badges: JSON.parse(JSON.stringify(DEFAULT_BADGES))
+          };
+
+          this.state.kids = [myProfile];
           this.state.currentKidId = kid.id;
           this.saveState();
         }
@@ -1419,18 +1479,111 @@ class QuestHeroApp {
       const local = this.state.kids.find(k => (k.inviteCode || '').toUpperCase() === inviteCode.toUpperCase());
       if (local) {
         foundKid = local;
+        this.state.kids = [local];
         this.state.currentKidId = local.id;
       }
     }
 
+    // Проверяем, зарегистрировался ли уже герой на этом телефоне
+    const isRegistered = localStorage.getItem('questhero_registered_' + inviteCode);
+
+    if (!isRegistered) {
+      // Открываем интерактивную регистрацию героя!
+      this.openChildOnboarding(inviteCode, foundKid);
+    } else {
+      this.showKidView();
+      this.render();
+    }
+  }
+
+  openChildOnboarding(inviteCode, kid = null) {
+    const codeInput = document.getElementById('onboardingInviteCode');
+    const nameInput = document.getElementById('onboardingKidName');
+
+    if (codeInput) codeInput.value = inviteCode;
+    if (nameInput) {
+      nameInput.value = (kid && kid.name && kid.name !== 'Ребёнок' && kid.name !== 'Герой') ? kid.name : '';
+    }
+
+    this.selectedOnboardingAvatar = (kid && kid.avatar) ? kid.avatar : '🦁';
+    this.selectedOnboardingTheme = 'hero';
+
+    this.renderOnboardingAvatars();
+    this.openModal('childOnboardingModal');
+    this.playSound('levelUp');
+  }
+
+  renderOnboardingAvatars() {
+    const grid = document.getElementById('onboardingAvatarGrid');
+    if (!grid) return;
+    grid.innerHTML = AVATARS.map(emoji => `
+      <button type="button" class="onboarding-avatar-card ${emoji === this.selectedOnboardingAvatar ? 'active' : ''}" onclick="app.selectOnboardingAvatar('${emoji}', this)">
+        <span>${emoji}</span>
+      </button>
+    `).join('');
+  }
+
+  selectOnboardingAvatar(emoji, btn) {
+    this.selectedOnboardingAvatar = emoji;
+    document.querySelectorAll('.onboarding-avatar-card').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    this.playSound('click');
+  }
+
+  selectOnboardingTheme(theme, btn) {
+    this.selectedOnboardingTheme = theme;
+    document.querySelectorAll('.onboarding-theme-card').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    this.setTheme(theme);
+    this.playSound('click');
+  }
+
+  async completeChildOnboarding(e) {
+    if (e) e.preventDefault();
+    const codeInput = document.getElementById('onboardingInviteCode');
+    const nameInput = document.getElementById('onboardingKidName');
+    const inviteCode = codeInput ? codeInput.value.trim() : '';
+    const name = nameInput ? nameInput.value.trim() : '';
+
+    if (!name) {
+      alert('Пожалуйста, введи своё имя!');
+      return;
+    }
+
+    const avatar = this.selectedOnboardingAvatar || '🦁';
+    const theme = this.selectedOnboardingTheme || 'hero';
+
+    // Фиксируем, что регистрация пройдена
+    localStorage.setItem('questhero_registered_' + inviteCode, 'true');
+    localStorage.setItem('questhero_child_code', inviteCode);
+
+    let activeKid = this.getActiveKid();
+    if (activeKid) {
+      activeKid.name = name;
+      activeKid.avatar = avatar;
+    }
+
+    // Сохраняем имя и аватар в Supabase
+    if (this.supabase) {
+      try {
+        await this.supabase
+          .from('kids')
+          .update({ name, avatar })
+          .eq('invite_code', inviteCode);
+      } catch (err) {
+        console.warn('Onboarding supabase update err:', err);
+      }
+    }
+
+    this.setTheme(theme);
+    this.saveState();
+    this.closeModal('childOnboardingModal');
     this.showKidView();
     this.render();
 
-    if (foundKid) {
-      this.playSound('levelUp');
-      this.triggerConfetti();
-      alert(`🎉 Привет, ${foundKid.name}! Ты вошёл со своего телефона. Выполняй квесты и открывай награды недели!`);
-    }
+    this.playSound('levelUp');
+    this.triggerConfetti();
+    alert(`🎉 Добро пожаловать в игру, ${name}! Твой герой создан. Заходи каждый день, выполняй дела и забирай награды! 🚀`);
   }
 
   copyKidDirectLink(kidId) {

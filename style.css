@@ -3522,3 +3522,143 @@ body::before {
     width: 100%;
   }
 }
+
+/* ==========================================================================
+   СИСТЕМА АВТОРИЗАЦИИ И СИНХРОНИЗАЦИИ (SUPABASE CLOUD AUTH)
+   ========================================================================== */
+.auth-modal-box {
+  max-width: 440px;
+  width: 100%;
+}
+
+.auth-tabs {
+  display: flex;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: var(--r-md);
+  padding: 4px;
+  gap: 4px;
+  margin-top: 0.5rem;
+}
+
+.auth-tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--c-text-secondary);
+  font-family: var(--ff-body);
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 0.65rem 1rem;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: all var(--dur-fast);
+}
+
+.auth-tab-btn.active {
+  background: var(--c-accent);
+  color: #fff;
+  box-shadow: 0 4px 12px var(--c-accent-glow);
+}
+
+.btn-full {
+  width: 100%;
+  justify-content: center;
+}
+
+.auth-alt-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--c-text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color var(--dur-fast);
+}
+
+.btn-link:hover {
+  color: var(--c-text);
+}
+
+.auth-error-banner {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  border-radius: var(--r-sm);
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.auth-success-banner {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+  border-radius: var(--r-sm);
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.parent-cloud-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #6ee7b7;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--r-pill);
+}
+
+.parent-cloud-badge.offline {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #fcd34d;
+}
+
+.cloud-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.parent-cloud-badge.offline .cloud-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 8px #f59e0b;
+}
+
+/* Кнопка прямой ссылки для ребенка */
+.kid-direct-link-btn {
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: #a5b4fc;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all var(--dur-fast);
+}
+
+.kid-direct-link-btn:hover {
+  background: rgba(99, 102, 241, 0.3);
+  color: #fff;
+  transform: translateY(-1px);
+}
+

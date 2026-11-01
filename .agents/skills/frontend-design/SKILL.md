@@ -24,3 +24,4 @@ Use non-user-triggered motion sparingly and deliberately, only to draw attention
 ## Copywriting in design
 
 Words appear in a design to make it easier to understand and use. Write from the end user's perspective in simple, clear, and engaging language. Keep the tone conversational, friendly, and empowering for both parents and kids.
+

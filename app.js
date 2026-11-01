@@ -56,6 +56,9 @@ const DEFAULT_WEEKLY_MILESTONES = [
   { id: 'wm_pc', title: 'Компьютер на след. неделю', icon: '💻', target: 20, rewardText: 'Полный доступ к компьютеру / ПК на следующую неделю', deviceKey: 'pc' }
 ];
 
+const SUPABASE_URL = 'https://xptfevazfplqkedxrivt.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwdGZldmF6ZnBscWtlZHhyaXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1NDkwOTAsImV4cCI6MjEwOTEyNTA5MH0.ktvm1WT4u0m99OWpVYkvLEakX-TtQ3a5QnikR5nWI58';
+
 // Уровни и звания
 const LEVEL_TITLES = [
   'Новичок-Искатель',
@@ -81,6 +84,14 @@ class QuestHeroApp {
     this.activeTimerCoupon = null;
     this.midnightTimeout = null;
     this.midnightInterval = null;
+
+    // Supabase Cloud Auth & Database
+    this.supabase = (typeof window !== 'undefined' && window.supabase && window.supabase.createClient)
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+    this.supabaseUser = null;
+    this.isChildMode = false;
+    this.authMode = 'login';
 
     this.state = this.loadState();
     this.initAudio();
@@ -1151,6 +1162,404 @@ class QuestHeroApp {
     if (!isOpen) {
       faqEl.classList.add('active');
       this.playSound('click');
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // SUPABASE ОБЛАЧНАЯ АВТОРИЗАЦИЯ И РАЗДЕЛЕНИЕ РОЛЕЙ
+  // ------------------------------------------------------------------------
+  async initSupabaseAuth() {
+    if (!this.supabase) return;
+    try {
+      const { data, error } = await this.supabase.auth.getSession();
+      if (data && data.session && data.session.user) {
+        this.supabaseUser = data.session.user;
+        this.updateParentCloudBadge();
+        await this.syncKidsFromSupabase();
+        this.setupRealtimeSubscription();
+      } else {
+        this.updateParentCloudBadge();
+      }
+    } catch (err) {
+      console.warn('Supabase getSession error:', err);
+      this.updateParentCloudBadge();
+    }
+  }
+
+  openParentLoginFlow() {
+    if (this.isChildMode) {
+      alert('📱 Этот телефон настроен как устройство героя. Родительский кабинет здесь заблокирован.');
+      return;
+    }
+    if (this.supabaseUser) {
+      this.closeModal('loginModal');
+      this.showParentView();
+      this.renderParentView();
+      this.playSound('click');
+    } else {
+      this.closeModal('loginModal');
+      this.openModal('parentAuthModal');
+      this.playSound('click');
+    }
+  }
+
+  switchAuthTab(tab) {
+    this.authMode = tab;
+    const btnLogin = document.getElementById('authTabLoginBtn');
+    const btnRegister = document.getElementById('authTabRegisterBtn');
+    const submitBtn = document.getElementById('authSubmitBtn');
+    const hintText = document.getElementById('authHintText');
+    const errBox = document.getElementById('authErrorMsg');
+    const succBox = document.getElementById('authSuccessMsg');
+    if (errBox) errBox.style.display = 'none';
+    if (succBox) succBox.style.display = 'none';
+
+    if (btnLogin) btnLogin.classList.toggle('active', tab === 'login');
+    if (btnRegister) btnRegister.classList.toggle('active', tab === 'register');
+
+    if (tab === 'login') {
+      if (submitBtn) submitBtn.innerHTML = '<span>🔐</span> Войти в кабинет';
+      if (hintText) hintText.textContent = 'Войдите в аккаунт семьи для синхронизации квестов и наград с телефоном ребёнка.';
+    } else {
+      if (submitBtn) submitBtn.innerHTML = '<span>✨</span> Зарегистрировать семью';
+      if (hintText) hintText.textContent = 'Создайте защищённый аккаунт родителя. Затем добавьте детей и отправьте им персональные ссылки.';
+    }
+  }
+
+  async handleParentAuth(e) {
+    if (e) e.preventDefault();
+    const emailInput = document.getElementById('authEmailInput');
+    const passInput = document.getElementById('authPasswordInput');
+    const errBox = document.getElementById('authErrorMsg');
+    const succBox = document.getElementById('authSuccessMsg');
+    const submitBtn = document.getElementById('authSubmitBtn');
+
+    if (errBox) errBox.style.display = 'none';
+    if (succBox) succBox.style.display = 'none';
+
+    const email = emailInput ? emailInput.value.trim() : '';
+    const password = passInput ? passInput.value.trim() : '';
+
+    if (!email || !password) {
+      if (errBox) { errBox.textContent = 'Пожалуйста, заполните email и пароль.'; errBox.style.display = 'block'; }
+      return;
+    }
+
+    if (!this.supabase) {
+      if (errBox) { errBox.textContent = 'Модуль Supabase не загружен. Проверьте подключение к интернету.'; errBox.style.display = 'block'; }
+      return;
+    }
+
+    const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span>⏳</span> Загрузка...'; }
+
+    try {
+      if (this.authMode === 'register') {
+        const { data, error } = await this.supabase.auth.signUp({ email, password });
+        if (error) throw error;
+
+        if (data.session) {
+          this.supabaseUser = data.user;
+          this.updateParentCloudBadge();
+          this.closeModal('parentAuthModal');
+          await this.syncKidsFromSupabase();
+          this.setupRealtimeSubscription();
+          this.showParentView();
+          this.renderParentView();
+          this.playSound('levelUp');
+          alert(`🎉 Добро пожаловать! Аккаунт родителя (${email}) успешно создан.`);
+        } else {
+          if (succBox) {
+            succBox.textContent = '✅ Регистрация успешна! Если на почту поступит письмо с подтверждением — подтвердите и выполните вход.';
+            succBox.style.display = 'block';
+          }
+        }
+      } else {
+        const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+
+        this.supabaseUser = data.user;
+        this.updateParentCloudBadge();
+        this.closeModal('parentAuthModal');
+        this.closeModal('loginModal');
+        await this.syncKidsFromSupabase();
+        this.setupRealtimeSubscription();
+        this.showParentView();
+        this.renderParentView();
+        this.playSound('levelUp');
+      }
+    } catch (err) {
+      console.error('Auth error:', err);
+      if (errBox) {
+        let msg = err.message || 'Ошибка авторизации.';
+        if (msg.includes('Invalid login credentials')) msg = 'Неверный email или пароль.';
+        if (msg.includes('User already registered')) msg = 'Пользователь с таким email уже существует. Переключитесь на «Вход».';
+        if (msg.includes('Password should be')) msg = 'Пароль должен содержать минимум 6 символов.';
+        errBox.textContent = msg;
+        errBox.style.display = 'block';
+      }
+      this.playSound('click');
+    } finally {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = originalBtnHtml; }
+    }
+  }
+
+  async logoutParent() {
+    if (confirm('Вы уверены, что хотите выйти из родительского аккаунта?')) {
+      if (this.supabase) {
+        try { await this.supabase.auth.signOut(); } catch (e) {}
+      }
+      this.supabaseUser = null;
+      this.updateParentCloudBadge();
+      this.showKidView();
+      this.render();
+      this.playSound('click');
+      alert('Вы успешно вышли из аккаунта родителя.');
+    }
+  }
+
+  updateParentCloudBadge() {
+    const badge = document.getElementById('parentCloudStatus');
+    const emailEl = document.getElementById('parentAccountEmail');
+    const cardSub = document.getElementById('loginCardParentSub');
+    if (this.supabaseUser) {
+      if (badge) {
+        badge.classList.remove('offline');
+        badge.title = `Вошли как: ${this.supabaseUser.email}`;
+      }
+      if (emailEl) emailEl.textContent = this.supabaseUser.email;
+      if (cardSub) cardSub.textContent = `Вход выполнен (${this.supabaseUser.email})`;
+    } else {
+      if (badge) {
+        badge.classList.add('offline');
+        badge.title = 'Офлайн режим (вход через PIN-код)';
+      }
+      if (emailEl) emailEl.textContent = 'Офлайн (PIN 1234)';
+      if (cardSub) cardSub.textContent = 'Вход или регистрация в облаке';
+    }
+  }
+
+  async activateChildMode(inviteCode) {
+    this.isChildMode = true;
+    localStorage.setItem('questhero_child_code', inviteCode);
+
+    // Скрываем все родительские элементы интерфейса на телефоне ребенка
+    const pBtn = document.getElementById('parentModeBtn');
+    if (pBtn) pBtn.style.setProperty('display', 'none', 'important');
+    document.querySelectorAll('.hero-cta-parent, .btn-cta-outline, .parent-role-card').forEach(el => {
+      el.style.setProperty('display', 'none', 'important');
+    });
+
+    let foundKid = null;
+    if (this.supabase) {
+      try {
+        const { data: kid, error } = await this.supabase
+          .from('kids')
+          .select('*')
+          .eq('invite_code', inviteCode)
+          .maybeSingle();
+
+        if (kid) {
+          foundKid = kid;
+          const { data: dbTasks } = await this.supabase.from('tasks').select('*').eq('kid_id', kid.id);
+          const { data: dbMilestones } = await this.supabase.from('weekly_milestones').select('*').eq('kid_id', kid.id);
+
+          if (dbMilestones && dbMilestones.length > 0) {
+            this.state.weeklyMilestones = dbMilestones;
+          }
+
+          let localKid = this.state.kids.find(k => k.id === kid.id);
+          const parsedTasks = (dbTasks && dbTasks.length > 0) ? dbTasks.map(t => ({
+            id: t.id.replace(`${kid.id}_`, ''),
+            title: t.title,
+            icon: t.icon,
+            category: t.category,
+            coins: t.coins,
+            xp: t.xp,
+            requiresApproval: t.requires_approval,
+            status: t.status === 'completed' ? 'done' : (t.status === 'waiting_approval' ? 'review' : 'pending'),
+            completedAt: t.completed_at
+          })) : JSON.parse(JSON.stringify(DEFAULT_TASKS));
+
+          if (!localKid) {
+            localKid = {
+              id: kid.id,
+              name: kid.name,
+              avatar: kid.avatar || '🦁',
+              avatarPhoto: null,
+              inviteCode: kid.invite_code,
+              coins: kid.coins || 0,
+              weekTokens: kid.week_tokens || 0,
+              streak: kid.streak || 1,
+              level: kid.level || 1,
+              xp: kid.xp || 0,
+              xpNext: (kid.level || 1) * 100,
+              accessStatus: kid.access_status || {},
+              tasks: parsedTasks,
+              coupons: [],
+              badges: JSON.parse(JSON.stringify(DEFAULT_BADGES))
+            };
+            this.state.kids.push(localKid);
+          } else {
+            localKid.coins = kid.coins;
+            localKid.weekTokens = kid.week_tokens;
+            localKid.streak = kid.streak || 1;
+            localKid.accessStatus = kid.access_status || {};
+            localKid.tasks = parsedTasks;
+          }
+          this.state.currentKidId = kid.id;
+          this.saveState();
+        }
+      } catch (err) {
+        console.warn('Child cloud load error:', err);
+      }
+    }
+
+    if (!foundKid) {
+      const local = this.state.kids.find(k => (k.inviteCode || '').toUpperCase() === inviteCode.toUpperCase());
+      if (local) {
+        foundKid = local;
+        this.state.currentKidId = local.id;
+      }
+    }
+
+    this.showKidView();
+    this.render();
+
+    if (foundKid) {
+      this.playSound('levelUp');
+      this.triggerConfetti();
+      alert(`🎉 Привет, ${foundKid.name}! Ты вошёл со своего телефона. Выполняй квесты и открывай награды недели!`);
+    }
+  }
+
+  copyKidDirectLink(kidId) {
+    const kid = this.state.kids.find(k => k.id === kidId);
+    if (!kid) return;
+    const code = kid.inviteCode || 'HERO-101';
+    const cleanUrl = window.location.origin + window.location.pathname;
+    const url = cleanUrl + '?kid=' + encodeURIComponent(code);
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        alert(`📱 Ссылка для ребёнка (${kid.name}) скопирована!\n\n${url}\n\nОтправьте её ребёнку в WhatsApp/Telegram. При переходе ребёнок сразу войдёт в свой игровой интерфейс, а родительский кабинет для него будет скрыт!`);
+      }).catch(() => {
+        prompt(`Скопируйте ссылку для ребёнка (${kid.name}):`, url);
+      });
+    } else {
+      prompt(`Скопируйте ссылку для ребёнка (${kid.name}):`, url);
+    }
+    this.playSound('click');
+  }
+
+  async syncKidsFromSupabase() {
+    if (!this.supabase || !this.supabaseUser) return;
+    try {
+      const { data: dbKids, error } = await this.supabase
+        .from('kids')
+        .select('*')
+        .eq('parent_id', this.supabaseUser.id);
+
+      if (!error && dbKids && dbKids.length > 0) {
+        const kidIds = dbKids.map(k => k.id);
+        const { data: dbTasks } = await this.supabase.from('tasks').select('*').in('kid_id', kidIds);
+        const { data: dbMilestones } = await this.supabase.from('weekly_milestones').select('*').in('kid_id', kidIds);
+
+        if (dbMilestones && dbMilestones.length > 0) {
+          this.state.weeklyMilestones = dbMilestones;
+        }
+
+        this.state.kids = dbKids.map(k => {
+          const kidTasks = (dbTasks || []).filter(t => t.kid_id === k.id).map(t => ({
+            id: t.id.replace(`${k.id}_`, ''),
+            title: t.title,
+            icon: t.icon,
+            category: t.category,
+            coins: t.coins,
+            xp: t.xp,
+            requiresApproval: t.requires_approval,
+            status: t.status === 'completed' ? 'done' : (t.status === 'waiting_approval' ? 'review' : 'pending'),
+            completedAt: t.completed_at
+          }));
+
+          return {
+            id: k.id,
+            name: k.name,
+            avatar: k.avatar || '🦁',
+            avatarPhoto: null,
+            inviteCode: k.invite_code,
+            coins: k.coins || 0,
+            weekTokens: k.week_tokens || 0,
+            streak: k.streak || 1,
+            level: k.level || 1,
+            xp: k.xp || 0,
+            xpNext: (k.level || 1) * 100,
+            accessStatus: k.access_status || { phoneCurrentWeek: true, pcCurrentWeek: false },
+            tasks: kidTasks.length > 0 ? kidTasks : JSON.parse(JSON.stringify(DEFAULT_TASKS)),
+            coupons: [],
+            badges: JSON.parse(JSON.stringify(DEFAULT_BADGES))
+          };
+        });
+
+        if (this.state.kids.length > 0 && (!this.state.currentKidId || !this.state.kids.find(k => k.id === this.state.currentKidId))) {
+          this.state.currentKidId = this.state.kids[0].id;
+        }
+        this.saveState();
+        this.render();
+      } else if (!error && dbKids && dbKids.length === 0 && this.state.kids && this.state.kids.length > 0) {
+        // Миграция локальных детей в облако
+        for (const localKid of this.state.kids) {
+          const { data } = await this.supabase.from('kids').insert([{
+            parent_id: this.supabaseUser.id,
+            name: localKid.name,
+            avatar: localKid.avatar || '🦁',
+            invite_code: localKid.inviteCode || ('HERO-' + Math.floor(1000 + Math.random() * 9000)),
+            coins: localKid.coins || 0,
+            week_tokens: localKid.weekTokens || 0,
+            streak: localKid.streak || 1,
+            level: localKid.level || 1,
+            xp: localKid.xp || 0
+          }]).select();
+
+          if (data && data[0]) {
+            localKid.id = data[0].id;
+            localKid.inviteCode = data[0].invite_code;
+            const taskInserts = (localKid.tasks || DEFAULT_TASKS).map(t => ({
+              id: `${data[0].id}_${t.id}`,
+              kid_id: data[0].id,
+              title: t.title,
+              icon: t.icon,
+              category: t.category,
+              coins: t.coins,
+              xp: t.xp,
+              requires_approval: t.requiresApproval,
+              status: t.status === 'done' ? 'completed' : (t.status === 'review' ? 'waiting_approval' : 'pending')
+            }));
+            await this.supabase.from('tasks').insert(taskInserts);
+          }
+        }
+        this.saveState();
+        this.render();
+      }
+    } catch (err) {
+      console.warn('Sync kids from supabase err:', err);
+    }
+  }
+
+  setupRealtimeSubscription() {
+    if (!this.supabase) return;
+    try {
+      this.supabase
+        .channel('public-sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => {
+          this.syncKidsFromSupabase();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'kids' }, () => {
+          this.syncKidsFromSupabase();
+        })
+        .subscribe();
+    } catch (err) {
+      console.warn('Realtime subscription error:', err);
     }
   }
 
@@ -3032,9 +3441,10 @@ class QuestHeroApp {
             </div>
           </div>
 
-          <div class="kid-invite-box">
+          <div class="kid-invite-box" style="flex-wrap: wrap; gap: 0.5rem;">
             <span>🔑 Инвайт: <strong class="kid-invite-code">${kid.inviteCode || 'HERO-101'}</strong></span>
-            <button class="btn-tiny" onclick="app.copyInviteCode('${kid.id}')">Копировать</button>
+            <button class="kid-direct-link-btn" onclick="app.copyKidDirectLink('${kid.id}')">📱 Ссылка для ребёнка</button>
+            <button class="btn-tiny" onclick="app.copyInviteCode('${kid.id}')">Код</button>
           </div>
 
           <div class="kid-card-actions">
@@ -3655,26 +4065,30 @@ window.addEventListener('DOMContentLoaded', () => {
   app.setTheme(app.state.settings.theme || 'hero', true);
   app.render();
 
+  // Инициализация облачной авторизации Supabase
+  app.initSupabaseAuth();
+
   // Инициализация калькулятора недели на лендинге
   app.updateLandingCalculator(3);
 
-  // Если в URL указан хеш лендинга (#landing / #about)
-  if (window.location.hash === '#landing' || window.location.hash === '#about') {
-    app.showLandingView();
-  }
+  // Проверка прямого входа для ребёнка через параметр URL (?kid=HERO-XXXX или #kid=... или сохраненного кода)
+  const urlParams = new URLSearchParams(window.location.search);
+  const kidParam = urlParams.get('kid');
+  const storedChildCode = localStorage.getItem('questhero_child_code');
 
-  // Автоматический вход по инвайт-ссылке в URL (#invite=HERO-XXXX)
-  if (window.location.hash && window.location.hash.startsWith('#invite=')) {
-    const code = decodeURIComponent(window.location.hash.replace('#invite=', '')).trim().toUpperCase();
+  if (kidParam) {
+    setTimeout(() => app.activateChildMode(kidParam.trim().toUpperCase()), 200);
+  } else if (window.location.hash && (window.location.hash.startsWith('#invite=') || window.location.hash.startsWith('#kid='))) {
+    const raw = window.location.hash.replace('#invite=', '').replace('#kid=', '');
+    const code = decodeURIComponent(raw).trim().toUpperCase();
     if (code) {
-      setTimeout(() => {
-        const found = app.state.kids.find(k => (k.inviteCode || '').toUpperCase() === code);
-        if (found) {
-          app.loginAsKid(found.id);
-          alert(`🎉 Привет, ${found.name}! Ты успешно подключился по ссылке родителей!`);
-        }
-      }, 300);
+      setTimeout(() => app.activateChildMode(code), 200);
     }
+  } else if (storedChildCode) {
+    // На этом устройстве ребёнок уже входил по своей ссылке — остаёмся в изолированном детском режиме
+    setTimeout(() => app.activateChildMode(storedChildCode), 100);
+  } else if (window.location.hash === '#landing' || window.location.hash === '#about') {
+    app.showLandingView();
   }
 
   // Поддержка ввода ПИН-кода с клавиатуры

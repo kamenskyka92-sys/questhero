@@ -78,7 +78,7 @@
         </button>
 
         <!-- Переключатель Режима (Детский / Родительский) -->
-        <button class="mode-btn" id="parentModeBtn" onclick="app.openParentPinModal()">
+        <button class="mode-btn" id="parentModeBtn" onclick="app.openParentLoginFlow()">
           <span class="lock-icon">🔒</span>
           <span class="btn-text">Родителям</span>
         </button>
@@ -112,7 +112,7 @@
               <button class="primary-btn hero-cta-btn" onclick="app.showKidView()">
                 <span>🚀</span> Начать играть бесплатно
               </button>
-              <button class="hero-cta-parent" onclick="app.openParentPinModal()">
+              <button class="hero-cta-parent" onclick="app.openParentLoginFlow()">
                 <span>🛡️</span> Кабинет родителей
               </button>
             </div>
@@ -442,8 +442,8 @@
             <button class="btn-cta-white" onclick="app.showKidView()">
               <span>🚀</span> Открыть детский интерфейс
             </button>
-            <button class="btn-cta-outline" onclick="app.openParentPinModal()">
-              <span>🛡️</span> Войти как родитель (PIN 1234)
+            <button class="btn-cta-outline" onclick="app.openParentLoginFlow()">
+              <span>🛡️</span> Войти как родитель
             </button>
           </div>
         </section>
@@ -785,8 +785,15 @@
           <h2>Управление семьёй, квестами и наградами</h2>
         </div>
         <div class="parent-actions-group">
+          <div class="parent-cloud-badge" id="parentCloudStatus" title="Статус синхронизации с облаком">
+            <span class="cloud-dot"></span>
+            <span id="parentAccountEmail">Облако активно</span>
+          </div>
           <button class="primary-btn btn-small" onclick="app.openInviteKidModal()">
             <span>➕</span> Пригласить ребёнка
+          </button>
+          <button class="secondary-btn btn-small" id="parentLogoutBtn" onclick="app.logoutParent()" title="Выйти из аккаунта родителя">
+            <span>🚪</span> Выйти
           </button>
           <button class="secondary-btn btn-small" onclick="app.exitParentMode()">
             <span>⬅️</span> В детский режим
@@ -1512,11 +1519,11 @@
 
       <div class="login-section-title" style="margin-top: 1.25rem;">Родители и подключение:</div>
       <div class="login-actions-grid">
-        <div class="user-select-card parent-role-card" onclick="app.loginAsParent()">
+        <div class="user-select-card parent-role-card" onclick="app.openParentLoginFlow()">
           <div class="user-card-avatar">🛡️</div>
           <div class="user-card-info">
             <h4>Кабинет Родителей</h4>
-            <span class="user-card-sub">Вход по PIN-коду (1234)</span>
+            <span class="user-card-sub" id="loginCardParentSub">Вход или регистрация в облаке</span>
           </div>
           <span class="role-arrow">🔒</span>
         </div>
@@ -1664,6 +1671,57 @@
       </div>
     </div>
   </div>
+
+  <!-- Модальное окно: Регистрация и Вход для родителей (Supabase Cloud Auth) -->
+  <div class="modal-overlay" id="parentAuthModal">
+    <div class="modal-box auth-modal-box">
+      <div class="modal-header">
+        <span class="modal-emoji">🛡️</span>
+        <h3 id="authModalTitle">Кабинет Родителей</h3>
+        <button class="close-btn" onclick="app.closeModal('parentAuthModal')">&times;</button>
+      </div>
+
+      <!-- Вкладки: Вход / Регистрация -->
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab-btn active" id="authTabLoginBtn" onclick="app.switchAuthTab('login')">Вход</button>
+        <button type="button" class="auth-tab-btn" id="authTabRegisterBtn" onclick="app.switchAuthTab('register')">Регистрация</button>
+      </div>
+
+      <p class="hint-text" id="authHintText" style="margin: 0.85rem 0 1rem 0; font-size: 0.88rem; line-height: 1.45;">
+        Войдите в аккаунт семьи для синхронизации квестов и наград с телефоном ребёнка.
+      </p>
+
+      <form id="parentAuthForm" onsubmit="app.handleParentAuth(event)">
+        <div class="form-group">
+          <label>Email родителя:</label>
+          <input type="email" id="authEmailInput" placeholder="name@example.com" required class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label>Пароль:</label>
+          <input type="password" id="authPasswordInput" placeholder="Минимум 6 символов" required minlength="6" class="form-input">
+        </div>
+
+        <div id="authErrorMsg" class="auth-error-banner" style="display: none;"></div>
+        <div id="authSuccessMsg" class="auth-success-banner" style="display: none;"></div>
+
+        <div class="modal-footer" style="flex-direction: column; gap: 0.75rem; margin-top: 1.25rem;">
+          <button type="submit" class="primary-btn btn-full" id="authSubmitBtn">
+            <span>🔐</span> Войти в кабинет
+          </button>
+          
+          <div class="auth-alt-row">
+            <button type="button" class="btn-link" onclick="app.openParentPinModal()">
+              Или войти через PIN-код (офлайн демо)
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Подключение Supabase JS Client (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Подключение скрипта приложения -->
   <script src="app.js"></script>

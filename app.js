@@ -10,31 +10,33 @@ const STORAGE_KEY = 'questhero_save_v1';
 // Набор аватарок
 const AVATARS = ['🦁', '🦊', '🚀', '🦸‍♂️', '🦸‍♀️', '🥷', '🤖', '🦄', '🧙‍♂️', '🦖', '🐼', '🐯', '⚡', '🌟', '🎮', '👑'];
 
-// Стартовые квесты по умолчанию
+// Стартовые квесты по умолчанию (награда от 1 до 3 монет + 1 недельный токен)
 const DEFAULT_TASKS = [
-  { id: 't1', title: 'Заправить кровать и умыться', icon: '🛏️', category: 'morning', coins: 10, xp: 15, requiresApproval: false, status: 'pending' },
-  { id: 't2', title: 'Вкусный и полезный завтрак', icon: '🍳', category: 'morning', coins: 10, xp: 15, requiresApproval: false, status: 'pending' },
-  { id: 't3', title: 'Сделать уроки без напоминаний', icon: '📚', category: 'study', coins: 25, xp: 40, requiresApproval: true, status: 'pending' },
-  { id: 't4', title: 'Почитать книгу (20 минут)', icon: '📖', category: 'study', coins: 20, xp: 30, requiresApproval: false, status: 'pending' },
-  { id: 't5', title: 'Навести порядок на столе и в комнате', icon: '🧹', category: 'chores', coins: 20, xp: 25, requiresApproval: true, status: 'pending' },
-  { id: 't6', title: 'Помочь убрать со стола после еды', icon: '🍽️', category: 'chores', coins: 15, xp: 20, requiresApproval: false, status: 'pending' },
-  { id: 't7', title: 'Спорт, зарядка или прогулка (30 мин)', icon: '⚽', category: 'health', coins: 20, xp: 30, requiresApproval: false, status: 'pending' },
-  { id: 't8', title: 'Съесть свежие фрукты или овощи', icon: '🍎', category: 'health', coins: 10, xp: 15, requiresApproval: false, status: 'pending' },
-  { id: 't9', title: 'Собрать рюкзак на завтра', icon: '🎒', category: 'evening', coins: 15, xp: 20, requiresApproval: false, status: 'pending' },
-  { id: 't10', title: 'Почистить зубы и вовремя лечь спать', icon: '🌙', category: 'evening', coins: 15, xp: 25, requiresApproval: true, status: 'pending' }
+  { id: 't1', title: 'Заправить кровать и умыться', icon: '🛏️', category: 'morning', coins: 1, xp: 10, requiresApproval: false, status: 'pending' },
+  { id: 't2', title: 'Вкусный и полезный завтрак', icon: '🍳', category: 'morning', coins: 1, xp: 10, requiresApproval: false, status: 'pending' },
+  { id: 't3', title: 'Сделать уроки без напоминаний', icon: '📚', category: 'study', coins: 3, xp: 30, requiresApproval: true, status: 'pending' },
+  { id: 't4', title: 'Почитать книгу (20 минут)', icon: '📖', category: 'study', coins: 2, xp: 20, requiresApproval: false, status: 'pending' },
+  { id: 't5', title: 'Навести порядок на столе и в комнате', icon: '🧹', category: 'chores', coins: 2, xp: 20, requiresApproval: true, status: 'pending' },
+  { id: 't6', title: 'Помочь убрать со стола после еды', icon: '🍽️', category: 'chores', coins: 1, xp: 10, requiresApproval: false, status: 'pending' },
+  { id: 't7', title: 'Спорт, зарядка или прогулка (30 мин)', icon: '⚽', category: 'health', coins: 2, xp: 20, requiresApproval: false, status: 'pending' },
+  { id: 't8', title: 'Съесть свежие фрукты или овощи', icon: '🍎', category: 'health', coins: 1, xp: 10, requiresApproval: false, status: 'pending' },
+  { id: 't9', title: 'Собрать рюкзак на завтра', icon: '🎒', category: 'evening', coins: 1, xp: 10, requiresApproval: false, status: 'pending' },
+  { id: 't10', title: 'Почистить зубы и вовремя лечь спать', icon: '🌙', category: 'evening', coins: 2, xp: 20, requiresApproval: true, status: 'pending' }
 ];
 
-// Стартовые награды магазина
+// Стартовые награды магазина (мороженое, пицца, карманные деньги, кино)
+// Рассчитано так, чтобы за неделю активный ребенок впритык набрал 35-40 монет на супер-пиццу!
 const DEFAULT_REWARDS = [
-  { id: 'r1', title: '30 минут на компьютере / приставке', icon: '🎮', type: 'screen_time', cost: 30, duration: 30 },
-  { id: 'r2', title: '45 минут YouTube или игр на телефоне', icon: '📱', type: 'screen_time', cost: 40, duration: 45 },
-  { id: 'r3', title: '1 час свободного экранного времени', icon: '🕹️', type: 'screen_time', cost: 55, duration: 60 },
-  { id: 'r4', title: '100 ₽ наличными или в копилку', icon: '💵', type: 'money', cost: 50, duration: 0 },
-  { id: 'r5', title: '250 ₽ на карманные расходы', icon: '💰', type: 'money', cost: 110, duration: 0 },
-  { id: 'r6', title: 'Выбрать любимый десерт / мороженое', icon: '🍦', type: 'fun', cost: 35, duration: 0 },
-  { id: 'r7', title: 'Семейная пицца или бургеры', icon: '🍕', type: 'fun', cost: 80, duration: 0 },
-  { id: 'r8', title: 'Поход в кино / парк развлечений', icon: '🎟️', type: 'fun', cost: 160, duration: 0 },
-  { id: 'r9', title: 'Поздний отбой на 30 минут в выходной', icon: '😴', type: 'fun', cost: 30, duration: 0 }
+  { id: 'r_sweet', title: 'Шоколадка, киндер или вкусняшка', icon: '🍫', type: 'fun', cost: 6, duration: 0 },
+  { id: 'r_icecream', title: 'Любимое мороженое (рожок / эскимо)', icon: '🍦', type: 'fun', cost: 8, duration: 0 },
+  { id: 'r_drink', title: 'Молочный коктейль, сок или смузи', icon: '🥤', type: 'fun', cost: 10, duration: 0 },
+  { id: 'r_m100', title: '100 ₽ наличными в копилку', icon: '💵', type: 'money', cost: 10, duration: 0 },
+  { id: 'r_snack', title: 'Вкусный перекус / наггетсы / картошка фри', icon: '🍟', type: 'fun', cost: 15, duration: 0 },
+  { id: 'r_cinema', title: 'Поход в кинотеатр или парк развлечений', icon: '🍿', type: 'fun', cost: 25, duration: 0 },
+  { id: 'r_m350', title: '350 ₽ на карманные расходы', icon: '💰', type: 'money', cost: 35, duration: 0 },
+  { id: 'r_pizza', title: 'Большая семейная пицца (Главная цель недели!)', icon: '🍕', type: 'fun', cost: 35, duration: 0 },
+  { id: 'r_toy', title: 'Новая игрушка / комикс / книга на выбор', icon: '🎁', type: 'fun', cost: 40, duration: 0 },
+  { id: 'r_bonus_screen', title: 'Экспресс-бонус: +20 мин игр прямо сейчас', icon: '⏱️', type: 'screen_time', cost: 5, duration: 20 }
 ];
 
 // Достижения (Ачивки)
@@ -129,6 +131,57 @@ class QuestHeroApp {
     return `${String(p.hour).padStart(2, '0')}:${String(p.minute).padStart(2, '0')}`;
   }
 
+  // ------------------------------------------------------------------------
+  // НЕДЕЛЬНЫЙ КАЛЕНДАРЬ И РАСЧЕТ НЕДЕЛИ (ПОНЕДЕЛЬНИК — ВОСКРЕСЕНЬЕ)
+  // ------------------------------------------------------------------------
+  getWeekInfo(date = new Date()) {
+    const p = this.getMoscowParts(date);
+    // Дата по МСК
+    const mskDate = new Date(Date.UTC(p.year, p.month - 1, p.day, 12, 0, 0));
+    // getUTCDay(): 0 = Вс, 1 = Пн, ..., 6 = Сб. Переводим на Пн=0..Вс=6:
+    const dayOfWeek = (mskDate.getUTCDay() + 6) % 7;
+
+    // Понедельник текущей недели
+    const monday = new Date(mskDate.getTime() - dayOfWeek * 86400000);
+    // Воскресенье текущей недели
+    const sunday = new Date(monday.getTime() + 6 * 86400000);
+
+    const pad = n => String(n).padStart(2, '0');
+    const monStr = `${monday.getUTCFullYear()}-${pad(monday.getUTCMonth() + 1)}-${pad(monday.getUTCDate())}`;
+    const sunStr = `${sunday.getUTCFullYear()}-${pad(sunday.getUTCMonth() + 1)}-${pad(sunday.getUTCDate())}`;
+    const weekKey = `week_${monStr}`;
+
+    const monthNamesRu = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+    const rangeLabel = `${monday.getUTCDate()} ${monthNamesRu[monday.getUTCMonth()]} — ${sunday.getUTCDate()} ${monthNamesRu[sunday.getUTCMonth()]}`;
+
+    const daysRu = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+    const daysFullRu = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+
+    const weekDays = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday.getTime() + i * 86400000);
+      const iso = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+      weekDays.push({
+        index: i,
+        shortName: daysRu[i],
+        fullName: daysFullRu[i],
+        dayOfMonth: d.getUTCDate(),
+        dateIso: iso,
+        isToday: i === dayOfWeek
+      });
+    }
+
+    return {
+      weekKey,
+      mondayIso: monStr,
+      sundayIso: sunStr,
+      rangeLabel,
+      currentDayIndex: dayOfWeek,
+      daysRemaining: 6 - dayOfWeek,
+      days: weekDays
+    };
+  }
+
   getMsUntilNextMoscowMidnight() {
     const now = new Date();
     const p = this.getMoscowParts(now);
@@ -155,20 +208,26 @@ class QuestHeroApp {
       const ms = this.getMsUntilNextMoscowMidnight();
       this.midnightTimeout = setTimeout(() => {
         this.checkDayRollover(this.state, true);
+        this.checkWeekRollover(this.state, true);
         scheduleNext();
       }, ms + 250);
     };
     scheduleNext();
 
-    // 2. Секундный таймер для счетчика и резервной проверки смены суток
+    // 2. Секундный таймер для счетчика и резервной проверки смены суток и недели
     if (this.midnightInterval) clearInterval(this.midnightInterval);
     this.midnightInterval = setInterval(() => {
       this.updateMidnightCountdown();
       const currentMsk = this.getMoscowDateString();
+      const currentWeekKey = this.getWeekInfo().weekKey;
+
       if (this.state && this.state.kids) {
-        const anyExpired = this.state.kids.some(k => k.lastActiveDate !== currentMsk);
-        if (anyExpired) {
+        const anyDayExpired = this.state.kids.some(k => k.lastActiveDate !== currentMsk);
+        const anyWeekExpired = this.state.kids.some(k => k.weekKey !== currentWeekKey);
+
+        if (anyDayExpired || anyWeekExpired) {
           this.checkDayRollover(this.state, true);
+          this.checkWeekRollover(this.state, true);
         }
       }
     }, 1000);
@@ -177,14 +236,86 @@ class QuestHeroApp {
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         this.checkDayRollover(this.state, true);
+        this.checkWeekRollover(this.state, true);
         this.updateMidnightCountdown();
       }
     });
 
     window.addEventListener('focus', () => {
       this.checkDayRollover(this.state, true);
+      this.checkWeekRollover(this.state, true);
       this.updateMidnightCountdown();
     });
+  }
+
+  // Проверка наступления новой недели (с понедельника по воскресенье)
+  checkWeekRollover(state, isLive = false) {
+    if (!state || !state.kids) return false;
+    const weekInfo = this.getWeekInfo();
+    const currentWeekKey = weekInfo.weekKey;
+    let anyChanged = false;
+
+    state.kids.forEach(kid => {
+      if (!kid.weekTokens) kid.weekTokens = 0;
+      if (!kid.weeklyCompletedTasks) kid.weeklyCompletedTasks = [];
+      if (!kid.accessStatus) {
+        kid.accessStatus = {
+          phoneCurrentWeek: true,
+          pcCurrentWeek: false,
+          parentOverridePhone: null,
+          parentOverridePc: null
+        };
+      }
+      if (!kid.pastWeeks) kid.pastWeeks = [];
+
+      if (!kid.weekKey) {
+        kid.weekKey = currentWeekKey;
+        return;
+      }
+
+      if (kid.weekKey !== currentWeekKey) {
+        anyChanged = true;
+        const totalDone = kid.weekTokens || 0;
+        const phoneUnlocked = totalDone >= 10;
+        const pcUnlocked = totalDone >= 20;
+
+        // Архивация итогов недели
+        kid.pastWeeks.unshift({
+          weekKey: kid.weekKey,
+          tokens: totalDone,
+          tasksCount: (kid.weeklyCompletedTasks || []).length,
+          phoneUnlocked,
+          pcUnlocked,
+          closedAt: this.getMoscowDateString()
+        });
+
+        // Награды открываются НА ТЕКУЩУЮ НЕДЕЛЮ по итогам завершившейся!
+        kid.accessStatus.phoneCurrentWeek = phoneUnlocked;
+        kid.accessStatus.pcCurrentWeek = pcUnlocked;
+        kid.accessStatus.parentOverridePhone = null;
+        kid.accessStatus.parentOverridePc = null;
+
+        // Сброс счетчика на новую неделю
+        kid.weekTokens = 0;
+        kid.weeklyCompletedTasks = [];
+        kid.weekKey = currentWeekKey;
+
+        state.history.unshift({
+          id: 'h_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+          time: this.getMoscowTimeString(),
+          text: `📅 ${kid.name}: завершена неделя (${totalDone} заданий). На новую неделю: Телефон ${phoneUnlocked ? '✅ РАЗБЛОКИРОВАН' : '🔒 ЗАКРЫТ'}, ПК ${pcUnlocked ? '✅ РАЗБЛОКИРОВАН' : '🔒 ЗАКРЫТ'}.`,
+          type: 'info'
+        });
+      }
+    });
+
+    if (anyChanged && isLive) {
+      this.saveState();
+      this.render();
+      this.playSound('levelUp');
+      this.triggerConfetti();
+    }
+    return anyChanged;
   }
 
   // ------------------------------------------------------------------------
@@ -207,13 +338,19 @@ class QuestHeroApp {
             level: parsed.hero.level || 1,
             xp: parsed.hero.xp || 0,
             xpNext: parsed.hero.xpNext || 100,
-            coins: parsed.hero.coins || 0,
+            coins: parsed.hero.coins || 15,
             streak: parsed.hero.streak || 1,
             lastActiveDate: parsed.hero.lastActiveDate || this.getMoscowDateString(),
-            totalCoinsEarned: parsed.hero.totalCoinsEarned || parsed.hero.coins || 0,
+            totalCoinsEarned: parsed.hero.totalCoinsEarned || parsed.hero.coins || 15,
             tasks: parsed.tasks || JSON.parse(JSON.stringify(DEFAULT_TASKS)),
             coupons: parsed.coupons || [],
-            badges: parsed.badges || JSON.parse(JSON.stringify(DEFAULT_BADGES))
+            badges: parsed.badges || JSON.parse(JSON.stringify(DEFAULT_BADGES)),
+            weekTokens: 0,
+            weekKey: this.getWeekInfo().weekKey,
+            weeklyCompletedTasks: [],
+            accessStatus: { phoneCurrentWeek: true, pcCurrentWeek: false, parentOverridePhone: null, parentOverridePc: null },
+            penalties: [],
+            pastWeeks: []
           };
           parsed.kids = [legacyKid];
           parsed.activeKidId = 'kid_1';
@@ -232,8 +369,50 @@ class QuestHeroApp {
           parsed.activeKidId = parsed.kids[0].id;
         }
 
-        // Проверяем смену календарного дня по МСК для всех детей
+        // Обновление/миграция данных под новые правила (1–3 монеты, недельный трекер, штрафы)
+        const weekInfo = this.getWeekInfo();
+        parsed.kids.forEach(kid => {
+          if (typeof kid.weekTokens !== 'number') {
+            const doneCount = (kid.tasks || []).filter(t => t.status === 'done').length;
+            kid.weekTokens = doneCount;
+          }
+          if (!kid.weekKey) kid.weekKey = weekInfo.weekKey;
+          if (!kid.weeklyCompletedTasks) kid.weeklyCompletedTasks = [];
+          if (!kid.accessStatus) {
+            kid.accessStatus = {
+              phoneCurrentWeek: true,
+              pcCurrentWeek: false,
+              parentOverridePhone: null,
+              parentOverridePc: null
+            };
+          }
+          if (!kid.penalties) kid.penalties = [];
+          if (!kid.pastWeeks) kid.pastWeeks = [];
+
+          // Нормализация монет за задания (от 1 до 3 монет)
+          if (kid.tasks) {
+            kid.tasks.forEach(t => {
+              if (t.coins > 3) {
+                t.coins = Math.min(3, Math.max(1, Math.round(t.coins / 8)));
+              }
+            });
+          }
+
+          // Если у ребенка со старой версии слишком много монет (например 100+),
+          // приведем к реалистичному балансу для новой экономики
+          if (kid.coins > 50) {
+            kid.coins = 20;
+          }
+        });
+
+        // Замена каталога наград, если в нем старые награды
+        if (!parsed.rewards || parsed.rewards.some(r => r.cost > 50)) {
+          parsed.rewards = JSON.parse(JSON.stringify(DEFAULT_REWARDS));
+        }
+
+        // Проверяем смену календарного дня и недели
         this.checkDayRollover(parsed);
+        this.checkWeekRollover(parsed);
         return parsed;
       }
     } catch (e) {
@@ -244,6 +423,7 @@ class QuestHeroApp {
 
   getInitialState() {
     const today = this.getMoscowDateString();
+    const weekInfo = this.getWeekInfo();
     const kid1 = {
       id: 'kid_1',
       name: 'Артём',
@@ -253,13 +433,28 @@ class QuestHeroApp {
       level: 1,
       xp: 0,
       xpNext: 100,
-      coins: 25,
+      coins: 12,
       streak: 1,
       lastActiveDate: today,
-      totalCoinsEarned: 25,
+      totalCoinsEarned: 12,
       tasks: JSON.parse(JSON.stringify(DEFAULT_TASKS)),
       coupons: [],
-      badges: JSON.parse(JSON.stringify(DEFAULT_BADGES))
+      badges: JSON.parse(JSON.stringify(DEFAULT_BADGES)),
+      weekTokens: 6,
+      weekKey: weekInfo.weekKey,
+      weeklyCompletedTasks: [
+        { id: 'w1', title: 'Заправить кровать и умыться', icon: '🛏️', coins: 1, dayIndex: 0, time: '08:30', date: today },
+        { id: 'w2', title: 'Сделать уроки без напоминаний', icon: '📚', coins: 3, dayIndex: 1, time: '16:00', date: today },
+        { id: 'w3', title: 'Почитать книгу (20 минут)', icon: '📖', coins: 2, dayIndex: 2, time: '17:30', date: today }
+      ],
+      accessStatus: {
+        phoneCurrentWeek: true,
+        pcCurrentWeek: false,
+        parentOverridePhone: null,
+        parentOverridePc: null
+      },
+      penalties: [],
+      pastWeeks: []
     };
     const kid2 = {
       id: 'kid_2',
@@ -270,13 +465,28 @@ class QuestHeroApp {
       level: 2,
       xp: 45,
       xpNext: 135,
-      coins: 60,
+      coins: 18,
       streak: 2,
       lastActiveDate: today,
-      totalCoinsEarned: 110,
+      totalCoinsEarned: 35,
       tasks: JSON.parse(JSON.stringify(DEFAULT_TASKS)),
       coupons: [],
-      badges: JSON.parse(JSON.stringify(DEFAULT_BADGES))
+      badges: JSON.parse(JSON.stringify(DEFAULT_BADGES)),
+      weekTokens: 11,
+      weekKey: weekInfo.weekKey,
+      weeklyCompletedTasks: [
+        { id: 'w4', title: 'Вкусный и полезный завтрак', icon: '🍳', coins: 1, dayIndex: 0, time: '09:00', date: today },
+        { id: 'w5', title: 'Сделать уроки без напоминаний', icon: '📚', coins: 3, dayIndex: 1, time: '15:20', date: today },
+        { id: 'w6', title: 'Порядок на столе и в комнате', icon: '🧹', coins: 2, dayIndex: 2, time: '18:15', date: today }
+      ],
+      accessStatus: {
+        phoneCurrentWeek: true,
+        pcCurrentWeek: true,
+        parentOverridePhone: null,
+        parentOverridePc: null
+      },
+      penalties: [],
+      pastWeeks: []
     };
 
     return {
@@ -388,6 +598,24 @@ class QuestHeroApp {
     this.render();
     if (manual) {
       alert('Новый день начался! Все квесты снова открыты для всех детей.');
+    }
+  }
+
+  startNewWeek(manual = false) {
+    if (!this.state || !this.state.kids) return;
+    this.state.kids.forEach(kid => {
+      kid.weekTokens = 0;
+      kid.weeklyCompletedTasks = [];
+    });
+    if (manual) {
+      this.playSound('levelUp');
+      this.triggerConfetti();
+      this.addHistory(`📅 Родители вручную сбросили недельный зачёт заданий.`);
+    }
+    this.saveState();
+    this.render();
+    if (manual) {
+      alert('Недельный прогресс успешно сброшен!');
     }
   }
 
@@ -810,6 +1038,7 @@ class QuestHeroApp {
       kids: { btn: 'ptabKidsBtn', content: 'parentKidsTab' },
       queue: { btn: 'ptabQueueBtn', content: 'parentQueueTab' },
       tasks: { btn: 'ptabTasksBtn', content: 'parentTasksTab' },
+      penalties: { btn: 'ptabPenaltiesBtn', content: 'parentPenaltiesTab' },
       rewards: { btn: 'ptabRewardsBtn', content: 'parentRewardsTab' },
       history: { btn: 'ptabHistoryBtn', content: 'parentHistoryTab' },
       settings: { btn: 'ptabSettingsBtn', content: 'parentSettingsTab' }
@@ -928,7 +1157,7 @@ class QuestHeroApp {
       this.addHistory(`⏳ ${kid.name}: Квест «${task.title}» отправлен на проверку родителям`);
     } else {
       task.status = 'done';
-      this.awardReward(task.coins, task.xp, `${kid.name}: выполнен квест «${task.title}»`, kid);
+      this.awardReward(task.coins, task.xp, `${kid.name}: выполнен квест «${task.title}»`, kid, task);
       this.checkBadgesAfterTask(task, kid);
     }
 
@@ -936,15 +1165,54 @@ class QuestHeroApp {
     this.render();
   }
 
-  awardReward(coins, xp, reason, targetKid = null) {
+  awardReward(coins, xp, reason, targetKid = null, task = null) {
     const kid = targetKid || this.getActiveKid();
     if (!kid) return;
+
+    // 1. Обычные монеты (1..3 🪙) для магазина лакомств
     kid.coins += coins;
     kid.totalCoinsEarned += coins;
     this.addXp(xp, kid);
+
+    // 2. Недельный Квест-Токен (+1 ⭐) для Телефона и ПК
+    kid.weekTokens = (kid.weekTokens || 0) + 1;
+    if (!kid.weeklyCompletedTasks) kid.weeklyCompletedTasks = [];
+
+    const weekInfo = this.getWeekInfo();
+    const taskTitle = task ? task.title : 'Квест';
+    const taskIcon = task ? task.icon : '⭐';
+    const taskCat = task ? task.category : 'general';
+
+    kid.weeklyCompletedTasks.push({
+      id: 'wct_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      taskId: task ? task.id : null,
+      title: taskTitle,
+      icon: taskIcon,
+      category: taskCat,
+      coins: coins,
+      time: this.getMoscowTimeString(),
+      date: this.getMoscowDateString(),
+      dayIndex: weekInfo.currentDayIndex
+    });
+
     this.playSound('coin');
     this.triggerConfetti();
-    this.addHistory(`⭐ ${reason} (+${coins} 🪙, +${xp} XP)`);
+    this.addHistory(`⭐ ${reason} (+${coins} 🪙, +1 ⭐ токен, +${xp} XP)`);
+
+    // Проверка открытия наград недели (10 заданий — телефон, 20 заданий — ПК)
+    if (kid.weekTokens === 10) {
+      setTimeout(() => {
+        this.playSound('levelUp');
+        this.triggerConfetti();
+        alert(`🎉 ПОЗДРАВЛЯЕМ, ${kid.name}!\n\nВыполнено 10 заданий за неделю!\n📱 Доступ к ТЕЛЕФОНУ на следующую неделю РАЗБЛОКИРОВАН!`);
+      }, 350);
+    } else if (kid.weekTokens === 20) {
+      setTimeout(() => {
+        this.playSound('levelUp');
+        this.triggerConfetti();
+        alert(`🚀 НЕВЕРОЯТНЫЙ ПОДВИГ, ${kid.name}!\n\nВыполнено 20 заданий за неделю!\n💻 Доступ к КОМПЬЮТЕРУ на следующую неделю РАЗБЛОКИРОВАН! 👑`);
+      }, 350);
+    }
   }
 
   addXp(amount, targetKid = null) {
@@ -956,8 +1224,8 @@ class QuestHeroApp {
       kid.level += 1;
       kid.xpNext = Math.round(kid.xpNext * 1.35);
       
-      // Бонус за уровень: +50 монет
-      const bonusCoins = 50;
+      // Бонус за уровень: +3 монеты (сохраняем ценность монет)
+      const bonusCoins = 3;
       kid.coins += bonusCoins;
       kid.totalCoinsEarned += bonusCoins;
 
@@ -982,7 +1250,7 @@ class QuestHeroApp {
     this.openModal('levelUpModal');
     this.playSound('levelUp');
     this.triggerConfetti();
-    this.addHistory(`🎉 ПОВЫШЕНИЕ УРОВНЯ! ${kid.name} достиг ${level} уровня («${title}»)! Бонус +50 🪙`);
+    this.addHistory(`🎉 ПОВЫШЕНИЕ УРОВНЯ! ${kid.name} достиг ${level} уровня («${title}»)! Бонус +3 🪙`);
   }
 
   // Одобрение квестов родителями
@@ -996,7 +1264,7 @@ class QuestHeroApp {
     if (!task) return;
 
     task.status = 'done';
-    this.awardReward(task.coins, task.xp, `Родители одобрили: «${task.title}» для ${targetKid.name}`, targetKid);
+    this.awardReward(task.coins, task.xp, `Родители одобрили: «${task.title}» для ${targetKid.name}`, targetKid, task);
     this.checkBadgesAfterTask(task, targetKid);
     this.saveState();
     this.render();
@@ -1023,9 +1291,7 @@ class QuestHeroApp {
       if (!kid.tasks) return;
       kid.tasks.filter(t => t.status === 'review').forEach(t => {
         t.status = 'done';
-        kid.coins += t.coins;
-        kid.totalCoinsEarned += t.coins;
-        this.addXp(t.xp, kid);
+        this.awardReward(t.coins, t.xp, `Одобрено родителями: «${t.title}»`, kid, t);
         count++;
       });
     });
@@ -1036,7 +1302,7 @@ class QuestHeroApp {
       this.addHistory(`⭐ Родители одобрили все квесты (${count} шт.)`);
       this.saveState();
       this.render();
-      alert(`Одобрено заданий: ${count}! Награды начислены юным героям.`);
+      alert(`Одобрено заданий: ${count}! Монеты и недельные токены начислены.`);
     }
   }
 
@@ -1274,7 +1540,7 @@ class QuestHeroApp {
       titleInput.value = '';
       iconInput.value = '⭐';
       catSelect.value = 'morning';
-      coinsInput.value = '15';
+      coinsInput.value = '2';
       xpInput.value = '20';
       checkInput.checked = true;
     }
@@ -1289,7 +1555,8 @@ class QuestHeroApp {
     const title = document.getElementById('taskTitleInput').value.trim();
     const icon = document.getElementById('taskIconInput').value.trim() || '⭐';
     const category = document.getElementById('taskCategorySelect').value;
-    const coins = parseInt(document.getElementById('taskCoinsInput').value, 10) || 10;
+    // Награда за задание строго от 1 до 3 монет
+    const coins = Math.min(3, Math.max(1, parseInt(document.getElementById('taskCoinsInput').value, 10) || 2));
     const xp = parseInt(document.getElementById('taskXpInput').value, 10) || 15;
     const requiresApproval = document.getElementById('taskRequiresApprovalCheck').checked;
 
@@ -1934,6 +2201,7 @@ class QuestHeroApp {
   render() {
     this.renderHeader();
     this.renderProfile();
+    this.renderWeeklyTracker();
     this.renderTasks();
     this.renderShop();
     this.renderCoupons();
@@ -1946,6 +2214,7 @@ class QuestHeroApp {
     const kid = this.getActiveKid();
     const streakEl = document.getElementById('headerStreak');
     const coinsEl = document.getElementById('headerCoins');
+    const weekTokensEl = document.getElementById('headerWeekTokens');
     const avatarEl = document.getElementById('headerUserAvatar');
     const nameEl = document.getElementById('headerUserName');
 
@@ -1966,6 +2235,7 @@ class QuestHeroApp {
     if (kid) {
       if (streakEl) streakEl.textContent = kid.streak || 1;
       if (coinsEl) coinsEl.textContent = kid.coins || 0;
+      if (weekTokensEl) weekTokensEl.textContent = kid.weekTokens || 0;
     }
   }
 
@@ -2020,6 +2290,24 @@ class QuestHeroApp {
       .reduce((sum, t) => sum + t.coins, 0);
     const todayCoinsEl = document.getElementById('todayCoinsEarned');
     if (todayCoinsEl) todayCoinsEl.textContent = `+${earnedToday} 🪙`;
+
+    // Недельный прогресс токенов (Пн-Вс)
+    const profTokensEl = document.getElementById('profileWeekTokens');
+    if (profTokensEl) profTokensEl.textContent = `${kid.weekTokens || 0} / 20 ⭐`;
+
+    // Доступ на текущую неделю
+    const phoneActive = (kid.accessStatus && kid.accessStatus.parentOverridePhone !== null)
+      ? kid.accessStatus.parentOverridePhone
+      : (kid.accessStatus ? kid.accessStatus.phoneCurrentWeek : false);
+
+    const pcActive = (kid.accessStatus && kid.accessStatus.parentOverridePc !== null)
+      ? kid.accessStatus.parentOverridePc
+      : (kid.accessStatus ? kid.accessStatus.pcCurrentWeek : false);
+
+    const profAccessEl = document.getElementById('profileAccessSummary');
+    if (profAccessEl) {
+      profAccessEl.textContent = `📱 ${phoneActive ? '✅' : '🔒'} · 💻 ${pcActive ? '✅' : '🔒'}`;
+    }
 
     const affordable = this.state.rewards.filter(r => r.cost <= kid.coins).length;
     const affordableEl = document.getElementById('affordableRewardsCount');
@@ -2282,6 +2570,27 @@ class QuestHeroApp {
       }
     }
 
+    // Недельные токены в сводке родителя
+    const pWeekTasksEl = document.getElementById('parentWeekTasksCount');
+    const pWeekAccessEl = document.getElementById('parentWeekAccessStatus');
+    if (pWeekTasksEl) {
+      if (filter === 'all') {
+        const maxTokens = Math.max(...this.state.kids.map(k => k.weekTokens || 0));
+        pWeekTasksEl.textContent = `${maxTokens} / 20 ⭐`;
+        if (pWeekAccessEl) pWeekAccessEl.textContent = `Вся семья (макс. ${maxTokens} ⭐)`;
+      } else {
+        const selKid = relevantKids[0];
+        pWeekTasksEl.textContent = `${selKid.weekTokens || 0} / 20 ⭐`;
+        const phone = (selKid.accessStatus && selKid.accessStatus.parentOverridePhone !== null)
+          ? selKid.accessStatus.parentOverridePhone
+          : (selKid.accessStatus ? selKid.accessStatus.phoneCurrentWeek : false);
+        const pc = (selKid.accessStatus && selKid.accessStatus.parentOverridePc !== null)
+          ? selKid.accessStatus.parentOverridePc
+          : (selKid.accessStatus ? selKid.accessStatus.pcCurrentWeek : false);
+        if (pWeekAccessEl) pWeekAccessEl.textContent = `📱 ${phone ? 'ВКЛ' : 'ВЫКЛ'} · 💻 ${pc ? 'ВКЛ' : 'ВЫКЛ'}`;
+      }
+    }
+
     // 5. Очередь квестов на проверку
     const queueList = document.getElementById('parentQueueList');
     if (queueList) {
@@ -2413,6 +2722,9 @@ class QuestHeroApp {
 
     const themeSelect = document.getElementById('parentThemeSelect');
     if (themeSelect) themeSelect.value = this.state.settings.theme || 'hero';
+
+    // 11. Система штрафов и ручной контроль устройств
+    this.renderPenaltiesTab();
   }
 
   renderParentKidsList() {
@@ -2506,6 +2818,352 @@ class QuestHeroApp {
     }).join('');
 
     container.innerHTML = html;
+  }
+
+  // ------------------------------------------------------------------------
+  // НЕДЕЛЬНЫЙ ТРЕКЕР ЗАДАНИЙ И НАГРАД (ДЕТСКИЙ ИНТЕРФЕЙС)
+  // ------------------------------------------------------------------------
+  renderWeeklyTracker() {
+    const kid = this.getActiveKid();
+    if (!kid) return;
+
+    const weekInfo = this.getWeekInfo();
+    const datesEl = document.getElementById('weeklyDatesRange');
+    if (datesEl) {
+      datesEl.textContent = `Пн — Вс (${weekInfo.rangeLabel})`;
+    }
+
+    const tokensNum = kid.weekTokens || 0;
+    const tokensCountEl = document.getElementById('weeklyTokensCount');
+    if (tokensCountEl) tokensCountEl.textContent = tokensNum;
+
+    // Статус доступа НА ЭТУ НЕДЕЛЮ (по итогам прошлой недели)
+    const phoneActive = (kid.accessStatus && kid.accessStatus.parentOverridePhone !== null)
+      ? kid.accessStatus.parentOverridePhone
+      : (kid.accessStatus ? kid.accessStatus.phoneCurrentWeek : false);
+
+    const pcActive = (kid.accessStatus && kid.accessStatus.parentOverridePc !== null)
+      ? kid.accessStatus.parentOverridePc
+      : (kid.accessStatus ? kid.accessStatus.pcCurrentWeek : false);
+
+    const phoneStatusText = document.getElementById('wcaPhoneStatusText');
+    const pcStatusText = document.getElementById('wcaPcStatusText');
+    if (phoneStatusText) {
+      phoneStatusText.textContent = phoneActive ? 'Разблокирован ✅' : 'Заблокирован 🔒';
+      phoneStatusText.className = `wca-status ${phoneActive ? 'status-active' : 'status-locked'}`;
+    }
+    if (pcStatusText) {
+      pcStatusText.textContent = pcActive ? 'Разблокирован ✅' : 'Заблокирован 🔒';
+      pcStatusText.className = `wca-status ${pcActive ? 'status-active' : 'status-locked'}`;
+    }
+
+    // Прогресс квестов на следующую неделю (шкала от 0 до 20)
+    const ratioEl = document.getElementById('weeklyProgressRatio');
+    if (ratioEl) ratioEl.textContent = `${tokensNum} / 20 заданий`;
+
+    const fillEl = document.getElementById('weeklyTrackFill');
+    if (fillEl) {
+      const pct = Math.min(100, Math.round((tokensNum / 20) * 100));
+      fillEl.style.width = `${pct}%`;
+    }
+
+    // Майлстоун 10 заданий: Телефон
+    const msPhoneNode = document.getElementById('msPhoneNode');
+    const msPhoneStatus = document.getElementById('msPhoneStatus');
+    const phoneUnlocked = tokensNum >= 10;
+    if (msPhoneNode) msPhoneNode.classList.toggle('unlocked', phoneUnlocked);
+    if (msPhoneStatus) {
+      msPhoneStatus.textContent = phoneUnlocked ? '✨ Разблокировано! 🎉' : `🔒 Осталось ${10 - tokensNum}`;
+    }
+
+    // Майлстоун 20 заданий: Компьютер
+    const msPcNode = document.getElementById('msPcNode');
+    const msPcStatus = document.getElementById('msPcStatus');
+    const pcUnlocked = tokensNum >= 20;
+    if (msPcNode) msPcNode.classList.toggle('unlocked', pcUnlocked);
+    if (msPcStatus) {
+      msPcStatus.textContent = pcUnlocked ? '✨ Разблокировано! 🚀' : `🔒 Осталось ${20 - tokensNum}`;
+    }
+
+    // Таблица выполненных заданий недели
+    const completed = kid.weeklyCompletedTasks || [];
+    const countEl = document.getElementById('wtTableTasksCount');
+    if (countEl) countEl.textContent = completed.length;
+
+    // Сетка дней недели (Пн, Вт, Ср, Чт, Пт, Сб, Вс)
+    const daysGrid = document.getElementById('weeklyDaysGrid');
+    if (daysGrid) {
+      daysGrid.innerHTML = weekInfo.days.map(d => {
+        const dayTasksCount = completed.filter(t => t.dayIndex === d.index).length;
+        let cardClass = 'wt-day-card';
+        if (d.isToday) cardClass += ' today';
+        if (dayTasksCount > 0) cardClass += ' has-tasks';
+
+        return `
+          <div class="${cardClass}">
+            <span class="wt-day-name">${d.shortName}</span>
+            <span class="wt-day-date">${d.dayOfMonth}</span>
+            <span class="wt-day-count ${dayTasksCount > 0 ? '' : 'empty'}">${dayTasksCount > 0 ? `${dayTasksCount} ⭐` : '—'}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Список выполненных квестов
+    const compList = document.getElementById('weeklyCompletedList');
+    if (compList) {
+      if (completed.length === 0) {
+        compList.innerHTML = `<p style="color: var(--c-text-muted); font-size: 0.85rem; padding: 0.5rem 0;">Пока нет выполненных квестов на этой неделе. Выполняй задания и открывай Телефон и ПК!</p>`;
+      } else {
+        compList.innerHTML = completed.slice().reverse().map(item => `
+          <div class="wt-completed-item">
+            <div class="wt-ci-left">
+              <span class="wt-ci-icon">${item.icon || '⭐'}</span>
+              <div>
+                <div class="wt-ci-title">${item.title}</div>
+                <div class="wt-ci-meta">${item.date || ''} в ${item.time || ''}</div>
+              </div>
+            </div>
+            <div class="wt-ci-rewards">
+              <span class="reward-tag coins">+${item.coins} 🪙</span>
+              <span class="reward-tag" style="background: rgba(56, 189, 248, 0.2); color: var(--c-sky);">+1 ⭐</span>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+  }
+
+  toggleWeeklyTable() {
+    const el = document.getElementById('weeklyTableCollapse');
+    const arrow = document.getElementById('wtToggleArrow');
+    if (!el) return;
+    const isHidden = el.style.display === 'none';
+    el.style.display = isHidden ? 'block' : 'none';
+    if (arrow) arrow.textContent = isHidden ? '▲' : '▼';
+    this.playSound('click');
+  }
+
+  scrollToWeeklyTracker() {
+    this.switchKidTab('tasks');
+    const sec = document.getElementById('weeklyTrackerSection');
+    if (sec) {
+      sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // СИСТЕМА ШТРАФОВ (РОДИТЕЛЬСКИЙ ИНТЕРФЕЙС)
+  // ------------------------------------------------------------------------
+  renderPenaltiesTab() {
+    // 1. Выбор ребенка в форме штрафа
+    const sel = document.getElementById('penaltyKidSelect');
+    if (sel && this.state.kids) {
+      const currentVal = sel.value || this.state.activeKidId;
+      sel.innerHTML = this.state.kids.map(k => `
+        <option value="${k.id}" ${k.id === currentVal ? 'selected' : ''}>
+          ${k.avatar} ${k.name} (баланс: ${k.coins} 🪙, неделя: ${k.weekTokens || 0} ⭐)
+        </option>
+      `).join('');
+    }
+
+    // 2. Пульт управления доступом к устройствам для всех детей
+    const accessGrid = document.getElementById('parentAccessControlsGrid');
+    if (accessGrid && this.state.kids) {
+      accessGrid.innerHTML = this.state.kids.map(kid => {
+        const phoneActive = (kid.accessStatus && kid.accessStatus.parentOverridePhone !== null)
+          ? kid.accessStatus.parentOverridePhone
+          : (kid.accessStatus ? kid.accessStatus.phoneCurrentWeek : false);
+
+        const pcActive = (kid.accessStatus && kid.accessStatus.parentOverridePc !== null)
+          ? kid.accessStatus.parentOverridePc
+          : (kid.accessStatus ? kid.accessStatus.pcCurrentWeek : false);
+
+        return `
+          <div class="pacc-kid-card">
+            <div class="pacc-kid-header">
+              <span class="pacc-kid-name">${kid.avatar} ${kid.name}</span>
+              <span style="font-size: 0.8rem; color: var(--c-sky); font-weight: 700;">Неделя: ${kid.weekTokens || 0} / 20 ⭐</span>
+            </div>
+            <div class="pacc-switches-row">
+              <button class="pacc-switch-btn ${phoneActive ? 'active' : 'inactive'}" onclick="app.toggleParentDeviceOverride('${kid.id}', 'phone')">
+                <span>📱 Телефон:</span> <strong>${phoneActive ? 'ВКЛ ✅' : 'ВЫКЛ 🔒'}</strong>
+              </button>
+              <button class="pacc-switch-btn ${pcActive ? 'active' : 'inactive'}" onclick="app.toggleParentDeviceOverride('${kid.id}', 'pc')">
+                <span>💻 ПК:</span> <strong>${pcActive ? 'ВКЛ ✅' : 'ВЫКЛ 🔒'}</strong>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 3. Таблица журнала штрафов
+    const tbody = document.getElementById('parentPenaltiesTableBody');
+    if (tbody) {
+      let allPenalties = [];
+      this.state.kids.forEach(kid => {
+        (kid.penalties || []).forEach(p => {
+          allPenalties.push({ ...p, kidName: kid.name, kidAvatar: kid.avatar });
+        });
+      });
+
+      // Бейдж на вкладке штрафов
+      const badge = document.getElementById('parentPenaltiesBadge');
+      const activeCount = allPenalties.filter(p => p.status === 'active').length;
+      if (badge) badge.textContent = activeCount;
+
+      const weekPenCount = document.getElementById('parentWeekPenaltiesCount');
+      if (weekPenCount) weekPenCount.textContent = activeCount;
+
+      if (allPenalties.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--c-text-muted); padding: 1.5rem;">Штрафов нет. Все дети ведут себя отлично! 😇</td></tr>`;
+      } else {
+        tbody.innerHTML = allPenalties.map(p => `
+          <tr>
+            <td>${p.date} ${p.time}</td>
+            <td><strong>${p.kidAvatar || ''} ${p.kidName}</strong></td>
+            <td>${p.reason}</td>
+            <td style="color: #f87171; font-weight: 800;">-${p.amount} 🪙 ${p.tokenDeducted ? '· -1⭐' : ''}</td>
+            <td>${p.status === 'cancelled' ? '<span style="opacity: 0.5;">Аннулирован ↩️</span>' : '<span style="color: #f87171; font-weight: 700;">Действует</span>'}</td>
+            <td>
+              ${p.status === 'active' ? `
+                <button class="btn-tiny" onclick="app.cancelPenalty('${p.id}')">↩️ Отменить</button>
+              ` : '—'}
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+  }
+
+  onPenaltyKidSelectChange() {
+    this.playSound('click');
+  }
+
+  setPenaltyPreset(reason, coins, deductToken = false) {
+    const reasonInput = document.getElementById('penaltyReasonInput');
+    const coinsInput = document.getElementById('penaltyCoinsInput');
+    const tokenCheck = document.getElementById('penaltyWeekTokenCheck');
+
+    if (reasonInput) reasonInput.value = reason;
+    if (coinsInput) coinsInput.value = coins;
+    if (tokenCheck) tokenCheck.checked = deductToken;
+    this.playSound('click');
+  }
+
+  applyPenalty() {
+    const sel = document.getElementById('penaltyKidSelect');
+    const kidId = sel ? sel.value : this.state.activeKidId;
+    const kid = this.state.kids.find(k => k.id === kidId) || this.getActiveKid();
+    if (!kid) return;
+
+    const coinsInput = document.getElementById('penaltyCoinsInput');
+    const amount = Math.max(1, Math.min(10, parseInt(coinsInput ? coinsInput.value : 2, 10) || 2));
+
+    const reasonInput = document.getElementById('penaltyReasonInput');
+    const reason = (reasonInput ? reasonInput.value : '').trim() || 'Нарушение дисциплины / правил';
+
+    const tokenCheck = document.getElementById('penaltyWeekTokenCheck');
+    const deductToken = tokenCheck ? tokenCheck.checked : false;
+
+    // Списание монет
+    const previousCoins = kid.coins;
+    kid.coins = Math.max(0, kid.coins - amount);
+    const actualDeducted = previousCoins - kid.coins;
+
+    // Списание недели токена при необходимости
+    if (deductToken && kid.weekTokens > 0) {
+      kid.weekTokens = Math.max(0, kid.weekTokens - 1);
+    }
+
+    if (!kid.penalties) kid.penalties = [];
+    const penaltyRecord = {
+      id: 'pen_' + Date.now(),
+      kidId: kid.id,
+      kidName: kid.name,
+      amount: amount,
+      deductedCoins: actualDeducted,
+      tokenDeducted: deductToken,
+      reason: reason,
+      date: this.getMoscowDateString(),
+      time: this.getMoscowTimeString(),
+      status: 'active'
+    };
+    kid.penalties.unshift(penaltyRecord);
+
+    const tokenMsg = deductToken ? ' и -1 ⭐ токен' : '';
+    this.addHistory(`⚠️ Штраф для ${kid.name}: -${amount} 🪙${tokenMsg} («${reason}»)`, 'warning');
+
+    this.saveState();
+    this.render();
+    this.playSound('click');
+
+    if (reasonInput) reasonInput.value = '';
+    alert(`Штраф успешно применён к ${kid.name}!\nСписано: ${amount} 🪙${tokenMsg}\nПричина: ${reason}`);
+  }
+
+  cancelPenalty(penaltyId) {
+    let foundKid = null;
+    let foundPenalty = null;
+
+    for (const kid of this.state.kids) {
+      if (kid.penalties) {
+        const p = kid.penalties.find(x => x.id === penaltyId);
+        if (p) {
+          foundKid = kid;
+          foundPenalty = p;
+          break;
+        }
+      }
+    }
+
+    if (!foundKid || !foundPenalty || foundPenalty.status !== 'active') return;
+
+    if (confirm(`Отменить штраф (-${foundPenalty.amount} 🪙) для ${foundKid.name} и вернуть монеты?`)) {
+      foundKid.coins += foundPenalty.amount;
+      if (foundPenalty.tokenDeducted) {
+        foundKid.weekTokens = (foundKid.weekTokens || 0) + 1;
+      }
+      foundPenalty.status = 'cancelled';
+
+      this.addHistory(`↩️ Родители отменили штраф для ${foundKid.name} (+${foundPenalty.amount} 🪙 возвращено)`);
+      this.playSound('coin');
+      this.saveState();
+      this.render();
+      alert(`Штраф отменён! ${foundPenalty.amount} 🪙 возвращено на баланс ${foundKid.name}.`);
+    }
+  }
+
+  toggleParentDeviceOverride(kidId, device) {
+    const kid = this.state.kids.find(k => k.id === kidId);
+    if (!kid) return;
+    if (!kid.accessStatus) {
+      kid.accessStatus = {
+        phoneCurrentWeek: true,
+        pcCurrentWeek: false,
+        parentOverridePhone: null,
+        parentOverridePc: null
+      };
+    }
+
+    if (device === 'phone') {
+      const current = (kid.accessStatus.parentOverridePhone !== null)
+        ? kid.accessStatus.parentOverridePhone
+        : kid.accessStatus.phoneCurrentWeek;
+      kid.accessStatus.parentOverridePhone = !current;
+      this.addHistory(`🛡️ Родители вручную ${!current ? 'РАЗБЛОКИРОВАЛИ' : 'ЗАБЛОКИРОВАЛИ'} доступ к Телефону для ${kid.name}`);
+    } else if (device === 'pc') {
+      const current = (kid.accessStatus.parentOverridePc !== null)
+        ? kid.accessStatus.parentOverridePc
+        : kid.accessStatus.pcCurrentWeek;
+      kid.accessStatus.parentOverridePc = !current;
+      this.addHistory(`🛡️ Родители вручную ${!current ? 'РАЗБЛОКИРОВАЛИ' : 'ЗАБЛОКИРОВАЛИ'} доступ к Компьютеру для ${kid.name}`);
+    }
+
+    this.saveState();
+    this.render();
+    this.playSound('click');
   }
 }
 

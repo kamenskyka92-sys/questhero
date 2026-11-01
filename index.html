@@ -253,38 +253,18 @@
               <span class="wt-ph-count" id="weeklyProgressRatio">0 / 20 заданий</span>
             </div>
 
-            <!-- Интерактивная полоса прогресса с майлстоунами 10 и 20 -->
+            <!-- Интерактивная полоса прогресса с динамическими вехами -->
             <div class="wt-track-container">
               <div class="wt-track-bg">
                 <div class="wt-track-fill" id="weeklyTrackFill" style="width: 0%;"></div>
               </div>
 
-              <!-- Веха 10 заданий: Телефон -->
-              <div class="wt-milestone milestone-10" id="msPhoneNode">
-                <div class="milestone-pin" id="msPhonePin">10 ⭐</div>
-                <div class="milestone-box">
-                  <span class="milestone-icon">📱</span>
-                  <div class="milestone-info">
-                    <strong id="msPhoneTitle">10 заданий</strong>
-                    <small>Телефон на след. неделю</small>
-                  </div>
-                  <span class="milestone-status-tag" id="msPhoneStatus">🔒 Осталось 10</span>
-                </div>
-              </div>
-
-              <!-- Веха 20 заданий: Компьютер -->
-              <div class="wt-milestone milestone-20" id="msPcNode">
-                <div class="milestone-pin" id="msPcPin">20 ⭐</div>
-                <div class="milestone-box">
-                  <span class="milestone-icon">💻</span>
-                  <div class="milestone-info">
-                    <strong id="msPcTitle">20 заданий</strong>
-                    <small>Компьютер на след. неделю</small>
-                  </div>
-                  <span class="milestone-status-tag" id="msPcStatus">🔒 Осталось 20</span>
-                </div>
-              </div>
+              <!-- Слой пинов на шкале прогресса -->
+              <div class="wt-milestone-pins-layer" id="weeklyMilestonePinsLayer"></div>
             </div>
+
+            <!-- Сетка карточек всех целей на неделю -->
+            <div class="wt-milestones-grid" id="weeklyMilestonesCardsGrid"></div>
           </div>
 
           <!-- Кнопка раскрытия таблицы сделанных заданий недели -->
@@ -614,36 +594,46 @@
             <h4 class="pf-title">Выписать штраф:</h4>
 
             <div class="form-row">
-              <div class="form-group">
+              <div class="form-group" style="flex: 1.2;">
                 <label>Ребёнок:</label>
                 <select id="penaltyKidSelect" class="form-input" onchange="app.onPenaltyKidSelectChange()">
                   <!-- JS заполняет детей -->
                 </select>
               </div>
-              <div class="form-group">
-                <label>Размер штрафа в монетах (🪙):</label>
-                <input type="number" id="penaltyCoinsInput" min="1" max="10" value="2" class="form-input">
+              <div class="form-group" style="flex: 1;">
+                <label>🪙 Списать монет:</label>
+                <input type="number" id="penaltyCoinsInput" min="0" max="50" value="0" class="form-input">
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label>⭐ Списать токенов недели:</label>
+                <input type="number" id="penaltyTokensInput" min="0" max="30" value="1" class="form-input">
               </div>
             </div>
 
             <!-- Шаблоны частых нарушений -->
             <div class="form-group">
-              <label>Быстрый выбор шаблона нарушения:</label>
+              <label>Быстрый выбор шаблона нарушения (наказания):</label>
               <div class="penalty-presets-grid" id="penaltyPresetsGrid">
-                <button type="button" class="penalty-preset-chip" onclick="app.setPenaltyPreset('Игры в телефоне/ПК без спроса', 3, true)">
-                  📱 Игры без спроса (-3 🪙)
+                <button type="button" class="penalty-preset-chip" onclick="app.setPenaltyPreset('Списание 1 недельного токена', 0, 1)">
+                  ⭐ Списать 1 токен недели (-1 ⭐)
                 </button>
-                <button type="button" class="penalty-preset-chip" onclick="app.setPenaltyPreset('Не убрал вещи / беспорядок', 2, false)">
-                  🧹 Беспорядок в комнате (-2 🪙)
+                <button type="button" class="penalty-preset-chip" onclick="app.setPenaltyPreset('Списание 2 недельных токенов', 0, 2)">
+                  ⭐⭐ Списать 2 токена недели (-2 ⭐)
                 </button>
-                <button type="button" class="penalty-preset-chip" onclick="app.setPenaltyPreset('Грубость / плохое поведение', 2, false)">
+                <button type="button" class="penalty-preset-chip" onclick="app.setPenaltyPreset('Игры в телефоне/ПК без спроса', 2, 1)">
+                  📱 Игры без спроса (-2 🪙, -1 ⭐)
+                </button>
+                <button type="button" class="penalty-preset-chip" onclick="app.setPenaltyPreset('Не сделаны уроки / обман', 3, 1)">
+                  📚 Пропуск уроков / обман (-3 🪙, -1 ⭐)
+                </button>
+                <button type="button" class="penalty-preset-chip" onclick="app.setPenaltyPreset('Грубость / плохое поведение', 2, 0)">
                   🗣️ Грубость / капризы (-2 🪙)
                 </button>
-                <button type="button" class="penalty-preset-chip" onclick="app.setPenaltyPreset('Не сделаны уроки / обман', 3, true)">
-                  📚 Пропуск уроков / обман (-3 🪙)
+                <button type="button" class="penalty-preset-chip" onclick="app.setPenaltyPreset('Не убрал вещи / беспорядок', 2, 0)">
+                  🧹 Беспорядок в комнате (-2 🪙)
                 </button>
-                <button type="button" class="penalty-preset-chip" onclick="app.setPenaltyPreset('Нарушение времени отбоя', 1, false)">
-                  🌙 Нарушение режима сна (-1 🪙)
+                <button type="button" class="penalty-preset-chip" onclick="app.setPenaltyPreset('Серьёзное нарушение правил', 5, 2)">
+                  ⚠️ Серьёзный проступок (-5 🪙, -2 ⭐)
                 </button>
               </div>
             </div>
@@ -651,13 +641,6 @@
             <div class="form-group">
               <label>Причина штрафа (будет показана ребёнку):</label>
               <input type="text" id="penaltyReasonInput" placeholder="Например: Игры в телефоне после 21:00 без разрешения" class="form-input">
-            </div>
-
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input type="checkbox" id="penaltyWeekTokenCheck">
-                <span>Также списать 1 недельный токен заданий (⭐) за серьезный проступок</span>
-              </label>
             </div>
 
             <div class="btn-row" style="margin-top: 1rem;">
@@ -794,19 +777,18 @@
 
           <!-- Настройка недельной полоски наград на след. неделю -->
           <div class="section-card">
-            <h3>🎯 Настройка полоски наград (доступ на след. неделю)</h3>
-            <p class="hint-text">Укажите количество заданий за неделю (Пн–Вс), необходимое для открытия Телефона и Компьютера на следующую неделю:</p>
-            <div class="form-row" style="margin-top: 1rem;">
-              <div class="form-group">
-                <label>📱 Заданий для открытия Телефона:</label>
-                <input type="number" id="settingMilestonePhone" min="1" max="50" value="10" class="form-input">
+            <div class="card-title-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+              <div>
+                <h3 style="margin: 0;">🎯 Настройка полоски наград (доступ на след. неделю)</h3>
+                <p class="hint-text" style="margin: 0.25rem 0 0 0;">Добавляйте любые награды за выполненные квесты на неделю (Пн–Вс). Полоса прогресса и карточки выстроятся автоматически!</p>
               </div>
-              <div class="form-group">
-                <label>💻 Заданий для открытия Компьютера:</label>
-                <input type="number" id="settingMilestonePc" min="1" max="50" value="20" class="form-input">
-              </div>
+              <button class="primary-btn btn-small" onclick="app.openMilestoneModal()">➕ Добавить цель</button>
             </div>
-            <button class="primary-btn" onclick="app.saveWeeklyMilestoneSettings()">💾 Сохранить цели полоски наград</button>
+
+            <!-- Список настроенных целей -->
+            <div class="milestones-manager-list" id="parentMilestonesManagerList" style="margin-top: 1rem;">
+              <!-- JS заполняет цели -->
+            </div>
           </div>
 
           <!-- Резервное копирование данных -->
@@ -1243,6 +1225,70 @@
       <div class="modal-footer" style="justify-content: center;">
         <button class="secondary-btn" onclick="app.closeModal('enterInviteCodeModal')">Отмена</button>
         <button class="primary-btn" onclick="app.submitInviteCode()">Войти как герой 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Добавление / Редактирование цели шкалы наград -->
+  <div class="modal-overlay" id="milestoneModal">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="milestoneModalTitle">🎯 Настройка цели на шкалу наград</h3>
+        <button class="close-btn" onclick="app.closeModal('milestoneModal')">&times;</button>
+      </div>
+
+      <input type="hidden" id="milestoneEditId" value="">
+
+      <!-- Быстрые шаблоны -->
+      <div class="form-group" style="margin-top: 0.5rem;">
+        <label>⚡ Быстрые готовые шаблоны:</label>
+        <div class="penalty-presets-grid" style="margin-top: 0.35rem;">
+          <button type="button" class="penalty-preset-chip" onclick="app.setMilestonePreset('🍦', 'Мороженое / Вкусняшка', 5, 'Поход за мороженым или любимая сладость')">
+            🍦 5 (Мороженое)
+          </button>
+          <button type="button" class="penalty-preset-chip" onclick="app.setMilestonePreset('📱', 'Телефон на след. неделю', 10, 'Полный доступ к смартфону на следующую неделю')">
+            📱 10 (Телефон)
+          </button>
+          <button type="button" class="penalty-preset-chip" onclick="app.setMilestonePreset('🎮', 'Игровая приставка', 15, 'Доступ к PlayStation / консоли на выходных')">
+            🎮 15 (Приставка)
+          </button>
+          <button type="button" class="penalty-preset-chip" onclick="app.setMilestonePreset('💻', 'Компьютер на след. неделю', 20, 'Полный доступ к компьютеру на следующую неделю')">
+            💻 20 (Компьютер)
+          </button>
+          <button type="button" class="penalty-preset-chip" onclick="app.setMilestonePreset('🍕', 'Пицца всей семьёй', 25, 'Заказ любимой пиццы в выходной')">
+            🍕 25 (Пицца)
+          </button>
+          <button type="button" class="penalty-preset-chip" onclick="app.setMilestonePreset('🎡', 'Парк аттракционов / Кино', 30, 'Поход в парк развлечений или кино')">
+            🎡 30 (Парк / Кино)
+          </button>
+        </div>
+      </div>
+
+      <div class="form-row" style="margin-top: 1rem;">
+        <div class="form-group" style="flex: 0 0 85px;">
+          <label>Иконка:</label>
+          <input type="text" id="milestoneIconInput" class="form-input text-center" value="🎁" style="font-size: 1.4rem;">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label>Название цели:</label>
+          <input type="text" id="milestoneTitleInput" class="form-input" placeholder="Например: Игровая приставка">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 0 0 160px;">
+          <label>Квестов за неделю (⭐):</label>
+          <input type="number" id="milestoneTargetInput" min="1" max="100" value="15" class="form-input">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label>Описание награды:</label>
+          <input type="text" id="milestoneDescInput" class="form-input" placeholder="Например: Доступ к PlayStation на выходных">
+        </div>
+      </div>
+
+      <div class="modal-footer" style="margin-top: 1.5rem;">
+        <button class="secondary-btn" onclick="app.closeModal('milestoneModal')">Отмена</button>
+        <button class="primary-btn" onclick="app.saveMilestone()">💾 Сохранить цель</button>
       </div>
     </div>
   </div>

@@ -20,13 +20,23 @@
   <!-- Верхняя панель (Хедер) -->
   <header class="header">
     <div class="header-container">
-      <div class="logo-area" onclick="app.showKidView()">
-        <span class="logo-icon">⭐</span>
+      <div class="logo-area" onclick="app.showLandingView()" style="cursor: pointer;" title="О сервисе «КвестГерой»">
+        <img src="assets/icons/logo.png" alt="КвестГерой" class="header-logo-image">
         <div>
           <h1 class="logo-title">КвестГерой</h1>
           <p class="logo-subtitle">Прокачай свой день!</p>
         </div>
       </div>
+
+      <!-- Переключатель режима лендинг / игра -->
+      <nav class="header-nav-group">
+        <button class="nav-view-btn" id="navLandingBtn" onclick="app.showLandingView()">
+          <span>🌟</span> О сервисе
+        </button>
+        <button class="nav-view-btn active" id="navKidBtn" onclick="app.showKidView()">
+          <span>🎮</span> Играть
+        </button>
+      </nav>
 
       <!-- Баланс и Статусы -->
       <div class="header-stats">
@@ -78,6 +88,368 @@
 
   <!-- Главный контейнер приложения -->
   <main class="main-content">
+
+    <!-- ============================================== -->
+    <!-- РЕЖИМ ЛЕНДИНГА (LANDING VIEW)                  -->
+    <!-- ============================================== -->
+    <div id="landingView" class="view-section" style="display: none;">
+      <div class="landing-wrapper">
+
+        <!-- 1. Hero Section -->
+        <section class="landing-hero">
+          <div class="hero-content">
+            <div class="hero-tag-pill">
+              <span>⚡</span> Геймификация привычек для всей семьи
+            </div>
+            <h1 class="hero-headline">
+              Превратите домашние дела и уроки в <span class="gradient-text">эпическую игру</span>
+            </h1>
+            <p class="hero-desc">
+              «КвестГерой» вдохновляет детей наводить порядок, делать уроки и соблюдать режим без криков и споров. За каждое дело ребёнок копит золотые монеты и открывает доступ к телефону и компьютеру на следующую неделю!
+            </p>
+
+            <div class="hero-actions-row">
+              <button class="primary-btn hero-cta-btn" onclick="app.showKidView()">
+                <span>🚀</span> Начать играть бесплатно
+              </button>
+              <button class="hero-cta-parent" onclick="app.openParentPinModal()">
+                <span>🛡️</span> Кабинет родителей
+              </button>
+            </div>
+
+            <div class="hero-badges-strip">
+              <span class="hero-badge-item">✅ 100% бесплатно в браузере</span>
+              <span class="hero-badge-item">🔒 Родительский PIN-код</span>
+              <span class="hero-badge-item">📱 Работает на любом телефоне</span>
+              <span class="hero-badge-item">🎮 4 темы оформления со звуками</span>
+            </div>
+          </div>
+
+          <div class="hero-visual-card">
+            <div class="hero-mascot-box">
+              <img src="assets/icons/logo.png" alt="Львёнок КвестГерой" class="hero-mascot-img">
+              <div class="hero-mascot-info">
+                <h3 class="hero-mascot-title">Львёнок Герой</h3>
+                <p class="hero-mascot-sub">Верный наставник юных героев</p>
+              </div>
+
+              <!-- Плавающие мини-бейджы с 3D ассетами -->
+              <div class="floating-badge floating-badge-coin">
+                <img src="assets/icons/hero_coin.png" alt="Монета">
+                <span>+1..3 🪙 за квест</span>
+              </div>
+              <div class="floating-badge floating-badge-star">
+                <img src="assets/icons/quest_star.png" alt="Звезда недели">
+                <span>+1 ⭐ токен недели</span>
+              </div>
+              <div class="floating-badge floating-badge-rewards">
+                <img src="assets/icons/device_rewards.png" alt="Гаджеты">
+                <span>Телефон & ПК на неделю!</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Секция: Три столпа КвестГероя (Как это устроено) -->
+        <section class="landing-section">
+          <div class="section-title-wrap">
+            <span class="section-eyebrow">Простая и честная механика</span>
+            <h2 class="section-heading">Как устроен баланс в КвестГерое</h2>
+            <p class="section-subheading">Две сбалансированные системы мотивации: монеты на сладкие награды и недельные звёзды на доступ к гаджетам.</p>
+          </div>
+
+          <div class="pillars-grid">
+            <!-- 1. Монеты -->
+            <div class="pillar-card">
+              <span class="pillar-num-badge">01</span>
+              <img src="assets/icons/hero_coin.png" alt="Монеты" class="pillar-icon-img">
+              <h3 class="pillar-title">1–3 монеты за квест</h3>
+              <p class="pillar-desc">
+                За простые дела (заправить кровать) — 1 🪙, за средние (уборка стола, чтение) — 2 🪙, за сложные (уроки без напоминаний) — 3 🪙.
+              </p>
+              <ul class="pillar-list">
+                <li>✨ Мороженое, шоколадка (8 🪙)</li>
+                <li>✨ Карманные деньги (10–35 🪙)</li>
+                <li>✨ Семейная пицца в воскресенье (35 🪙)</li>
+              </ul>
+            </div>
+
+            <!-- 2. Токены недели -->
+            <div class="pillar-card">
+              <span class="pillar-num-badge">02</span>
+              <img src="assets/icons/quest_star.png" alt="Токены недели" class="pillar-icon-img">
+              <h3 class="pillar-title">⭐ Шкала наград на неделю</h3>
+              <p class="pillar-desc">
+                Каждый выполненный квест приносит +1 ⭐ токен недели. Счётчик заполняет шкалу с понедельника по воскресенье.
+              </p>
+              <ul class="pillar-list">
+                <li>📱 10 заданий — Телефон на след. неделю</li>
+                <li>💻 20 заданий — Компьютер на след. неделю</li>
+                <li>🎯 Родители могут добавлять любые свои цели!</li>
+              </ul>
+            </div>
+
+            <!-- 3. Родительский контроль -->
+            <div class="pillar-card">
+              <span class="pillar-num-badge">03</span>
+              <img src="assets/icons/device_rewards.png" alt="Родительский контроль" class="pillar-icon-img">
+              <h3 class="pillar-title">🛡️ Защищённый контроль</h3>
+              <p class="pillar-desc">
+                Родительский кабинет защищён 4-значным PIN-кодом. Проверяйте квесты, управляйте доступом и настраивайте цели.
+              </p>
+              <ul class="pillar-list">
+                <li>🔒 Одобрение выполненных уроков и уборки</li>
+                <li>⚖️ Справедливые штрафы (монеты или токены)</li>
+                <li>🔄 Быстрый ручной контроль гаджетов в 1 клик</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Интерактивный калькулятор недели -->
+        <section class="landing-section">
+          <div class="section-title-wrap">
+            <span class="section-eyebrow">Интерактивный симулятор</span>
+            <h2 class="section-heading">Сколько наград заработает ваш ребёнок?</h2>
+            <p class="section-subheading">Подвигайте ползунок, чтобы увидеть расчёт баланса монет и доступных устройств за одну неделю.</p>
+          </div>
+
+          <div class="landing-calc-card">
+            <div class="calc-controls-col">
+              <div class="calc-slider-wrap">
+                <div class="calc-slider-label">
+                  <span>Выполненных заданий в день:</span>
+                  <span class="calc-slider-num" id="landingCalcDailyVal">3 задания</span>
+                </div>
+                <input type="range" id="landingCalcSlider" min="1" max="5" value="3" class="calc-range-input" oninput="app.updateLandingCalculator(this.value)">
+              </div>
+              <p style="font-size: 0.88rem; color: var(--c-text-muted); margin: 0; line-height: 1.5;">
+                💡 В среднем за задание начисляется 1–3 монеты и 1 звёздный токен. Задания обновляются каждое утро в 00:00 МСК.
+              </p>
+              <button class="primary-btn btn-small" onclick="app.showKidView()" style="width: max-content;">
+                🚀 Попробовать в игре
+              </button>
+            </div>
+
+            <div class="calc-results-col">
+              <h4 style="margin: 0; font-size: 0.95rem; color: #fff;">Результаты за неделю (Пн — Вс):</h4>
+              <div class="calc-results-grid">
+                <div class="calc-metric-box">
+                  <span class="calc-metric-num" id="landingCalcWeekTasks">21</span>
+                  <span class="calc-metric-label">квестов</span>
+                </div>
+                <div class="calc-metric-box">
+                  <span class="calc-metric-num" style="color: var(--c-gold);" id="landingCalcWeekCoins">~42 🪙</span>
+                  <span class="calc-metric-label">монет на призы</span>
+                </div>
+                <div class="calc-metric-box">
+                  <span class="calc-metric-num" style="color: var(--c-sky);" id="landingCalcWeekTokens">21 ⭐</span>
+                  <span class="calc-metric-label">токенов недели</span>
+                </div>
+              </div>
+
+              <div class="calc-rewards-preview">
+                <div class="calc-reward-line unlocked" id="calcLinePhone">
+                  <span>📱 Телефон на след. неделю (10 квестов)</span>
+                  <strong style="color: var(--c-emerald);">РАЗБЛОКИРОВАН ✅</strong>
+                </div>
+                <div class="calc-reward-line unlocked" id="calcLinePc">
+                  <span>💻 Компьютер на след. неделю (20 квестов)</span>
+                  <strong style="color: var(--c-emerald);">РАЗБЛОКИРОВАН ✅</strong>
+                </div>
+                <div class="calc-reward-line unlocked" id="calcLinePizza">
+                  <span>🍕 Большая семейная пицца (35 монет)</span>
+                  <strong style="color: var(--c-gold);">ХВАТАЕТ МОНЕТ! 🍕</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Сравнение До и После -->
+        <section class="landing-section">
+          <div class="section-title-wrap">
+            <span class="section-eyebrow">Жизнь семьи</span>
+            <h2 class="section-heading">Без скандалов и криков из-за гаджетов</h2>
+          </div>
+
+          <div class="comparison-grid">
+            <div class="compare-card bad">
+              <h3 class="compare-title">❌ Без системы и правил:</h3>
+              <ul class="compare-list">
+                <li>😫 Бесконечные уговоры сесть за уроки или убрать игрушки</li>
+                <li>📱 Ребёнок сидит в телефоне часами, а при запретах начинаются истерики</li>
+                <li>🗣️ Чувство вины у родителей за постоянные замечания и конфликты</li>
+                <li>🤷‍♂️ Ребёнок не понимает ценности карманных денег и экрана</li>
+              </ul>
+            </div>
+
+            <div class="compare-card good">
+              <h3 class="compare-title">✨ С «КвестГероем»:</h3>
+              <ul class="compare-list">
+                <li>🦸‍♂️ Ребёнок сам стремится выполнить квесты, чтобы набрать заветные звёзды</li>
+                <li>🎯 Экранное время на следующую неделю заслужено собственным трудом</li>
+                <li>⚖️ Прозрачные правила: ребёнок видит свой прогресс и учится ставить цели</li>
+                <li>🍕 Радость побед и совместная гордость всей семьи за успехи героя</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. 4 Игровые вселенные со звуками -->
+        <section class="landing-section">
+          <div class="section-title-wrap">
+            <span class="section-eyebrow">Любимые игры детей</span>
+            <h2 class="section-heading">4 атмосферные темы с живыми звуками</h2>
+            <p class="section-subheading">Выберите оформление, которое обожает ваш ребёнок. Синтезатор звуков Web Audio реагирует на клики и победы!</p>
+          </div>
+
+          <div class="themes-showcase-grid">
+            <div class="theme-show-card" onclick="app.setTheme('hero'); app.playSound('levelUp');">
+              <span class="theme-show-icon">⚡</span>
+              <h4 class="theme-show-title">Супергерой</h4>
+              <p class="theme-show-desc">Яркий индиго, золото и триумфальные фанфары</p>
+              <button class="secondary-btn btn-tiny theme-show-btn">Включить & Слушать 🔊</button>
+            </div>
+            <div class="theme-show-card" onclick="app.setTheme('minecraft'); app.playSound('coin');">
+              <span class="theme-show-icon">⛏️</span>
+              <h4 class="theme-show-title">Minecraft</h4>
+              <p class="theme-show-desc">Пиксельный изумруд, блок травы и звук XP-шариков</p>
+              <button class="secondary-btn btn-tiny theme-show-btn">Включить & Слушать 🔊</button>
+            </div>
+            <div class="theme-show-card" onclick="app.setTheme('roblox'); app.playSound('click');">
+              <span class="theme-show-icon">🕹️</span>
+              <h4 class="theme-show-title">Roblox</h4>
+              <p class="theme-show-desc">Blox-стиль, темный неон и аркадные щелчки</p>
+              <button class="secondary-btn btn-tiny theme-show-btn">Включить & Слушать 🔊</button>
+            </div>
+            <div class="theme-show-card" onclick="app.setTheme('brawl'); app.playSound('levelUp');">
+              <span class="theme-show-icon">⭐</span>
+              <h4 class="theme-show-title">Brawl Stars</h4>
+              <p class="theme-show-desc">Кристаллы, мультяшный стиль и сочные звуки побед</p>
+              <button class="secondary-btn btn-tiny theme-show-btn">Включить & Слушать 🔊</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. Отзывы родителей -->
+        <section class="landing-section">
+          <div class="section-title-wrap">
+            <span class="section-eyebrow">Опыт родителей</span>
+            <h2 class="section-heading">Истории счастливых семей</h2>
+          </div>
+
+          <div class="reviews-grid">
+            <div class="review-card">
+              <div class="review-stars">★★★★★</div>
+              <p class="review-quote">
+                «Сын (8 лет) раньше категорически отказывался читать и убирать портфель. Теперь каждое утро первым делом бежит отмечать выполненные дела, чтобы к воскресенью точно открылся компьютер. Отношения стали гораздо спокойнее!»
+              </p>
+              <div class="review-author">
+                <span class="review-avatar">👩</span>
+                <div class="review-author-info">
+                  <strong>Елена М.</strong>
+                  <small>Мама Артёма, 8 лет</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="review-card">
+              <div class="review-stars">★★★★★</div>
+              <p class="review-quote">
+                «Гениальная идея с недельной шкалой на след. неделю! Раньше телефон отбирали со слезами. Теперь дочь знает: сделала 10 квестов — телефон твой на всю неделю. Никаких обид, всё абсолютно прозрачно.»
+              </p>
+              <div class="review-author">
+                <span class="review-avatar">👨</span>
+                <div class="review-author-info">
+                  <strong>Дмитрий К.</strong>
+                  <small>Папа Алисы, 10 лет</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="review-card">
+              <div class="review-stars">★★★★★</div>
+              <p class="review-quote">
+                «Очень нравится тема Minecraft и то, что приложение работает прямо в браузере планшета. Никаких платных подписок и рекламы. Ребёнок копит монеты на поход в пиццерию всей семьёй — это сближает!»
+              </p>
+              <div class="review-author">
+                <span class="review-avatar">👩</span>
+                <div class="review-author-info">
+                  <strong>Ольга С.</strong>
+                  <small>Мама двоих детей (7 и 11 лет)</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. Частые вопросы (FAQ) -->
+        <section class="landing-section">
+          <div class="section-title-wrap">
+            <span class="section-eyebrow">Вопросы и ответы</span>
+            <h2 class="section-heading">Часто задаваемые вопросы</h2>
+          </div>
+
+          <div class="faq-list">
+            <div class="faq-item active" onclick="app.toggleFaqItem(this)">
+              <button class="faq-question-btn">
+                <span>Нужно ли скачивать приложение из App Store или Google Play?</span>
+                <span class="faq-arrow">▼</span>
+              </button>
+              <div class="faq-answer">
+                Нет! «КвестГерой» работает как веб-приложение прямо в браузере любого смартфона, планшета или компьютера. Вы можете добавить иконку на главный экран в один клик через меню браузера («На экран Домой»).
+              </div>
+            </div>
+
+            <div class="faq-item" onclick="app.toggleFaqItem(this)">
+              <button class="faq-question-btn">
+                <span>Как защищён родительский кабинет от ребёнка?</span>
+                <span class="faq-arrow">▼</span>
+              </button>
+              <div class="faq-answer">
+                Родительский раздел защищён 4-значным PIN-кодом (по умолчанию 1234, который можно сменить в любой момент в настройках). Ребёнок не сможет самостоятельно одобрить квесты, начислить себе монеты или изменить статус устройств.
+              </div>
+            </div>
+
+            <div class="faq-item" onclick="app.toggleFaqItem(this)">
+              <button class="faq-question-btn">
+                <span>Как ребёнок заходит со своего собственного телефона?</span>
+                <span class="faq-arrow">▼</span>
+              </button>
+              <div class="faq-answer">
+                В карточке ребёнка в кабинете родителей нажмите «Скопировать ссылку». Отправьте эту ссылку ребёнку в мессенджер — открыв её, он сразу попадёт в свой игровой профиль без паролей и логинов.
+              </div>
+            </div>
+
+            <div class="faq-item" onclick="app.toggleFaqItem(this)">
+              <button class="faq-question-btn">
+                <span>Где хранятся данные и не потеряется ли прогресс?</span>
+                <span class="faq-arrow">▼</span>
+              </button>
+              <div class="faq-answer">
+                Все данные надёжно сохраняются в памяти вашего браузера (LocalStorage). В родительском кабинете также есть кнопка «📥 Скачать резервную копию» для сохранения файла и переноса на любое другое устройство.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. Финальный призыв к действию (CTA) -->
+        <section class="landing-cta-banner">
+          <h2>Начните приключение вашего героя сегодня!</h2>
+          <p>Подарите ребёнку радость побед и мотивацию к учёбе, а вашей семье — спокойствие и порядок без ссор.</p>
+          <div class="landing-cta-btns">
+            <button class="btn-cta-white" onclick="app.showKidView()">
+              <span>🚀</span> Открыть детский интерфейс
+            </button>
+            <button class="btn-cta-outline" onclick="app.openParentPinModal()">
+              <span>🛡️</span> Войти как родитель (PIN 1234)
+            </button>
+          </div>
+        </section>
+
+      </div>
+    </div>
 
     <!-- ============================================== -->
     <!-- ДЕТСКИЙ РЕЖИМ (KID VIEW)                       -->

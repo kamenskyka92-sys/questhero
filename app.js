@@ -693,10 +693,17 @@ class QuestHeroApp {
 
   showParentView() {
     this.state.currentRole = 'parent';
+    const lv = document.getElementById('landingView');
     const kv = document.getElementById('kidView');
     const pv = document.getElementById('parentView');
+    if (lv) lv.style.display = 'none';
     if (kv) kv.classList.remove('active');
     if (pv) pv.classList.add('active');
+
+    const btnLanding = document.getElementById('navLandingBtn');
+    const btnKid = document.getElementById('navKidBtn');
+    if (btnLanding) btnLanding.classList.remove('active');
+    if (btnKid) btnKid.classList.remove('active');
   }
 
   // ------------------------------------------------------------------------
@@ -1057,12 +1064,94 @@ class QuestHeroApp {
   }
 
   // ------------------------------------------------------------------------
-  // НАВИГАЦИЯ И ПЕРЕКЛЮЧЕНИЕ РЕЖИМОВ
+  // НАВИГАЦИЯ И ПЕРЕКЛЮЧЕНИЕ РЕЖИМОВ (ЛЕНДИНГ / ИГРА / РОДИТЕЛИ)
   // ------------------------------------------------------------------------
-  showKidView() {
-    document.getElementById('kidView').classList.add('active');
-    document.getElementById('parentView').classList.remove('active');
+  showLandingView() {
+    this.state.currentRole = 'landing';
+    const lv = document.getElementById('landingView');
+    const kv = document.getElementById('kidView');
+    const pv = document.getElementById('parentView');
+    if (lv) lv.style.display = 'block';
+    if (kv) kv.classList.remove('active');
+    if (pv) pv.classList.remove('active');
+
+    const btnLanding = document.getElementById('navLandingBtn');
+    const btnKid = document.getElementById('navKidBtn');
+    if (btnLanding) btnLanding.classList.add('active');
+    if (btnKid) btnKid.classList.remove('active');
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     this.playSound('click');
+  }
+
+  showKidView() {
+    this.state.currentRole = 'kid';
+    const lv = document.getElementById('landingView');
+    const kv = document.getElementById('kidView');
+    const pv = document.getElementById('parentView');
+    if (lv) lv.style.display = 'none';
+    if (kv) kv.classList.add('active');
+    if (pv) pv.classList.remove('active');
+
+    const btnLanding = document.getElementById('navLandingBtn');
+    const btnKid = document.getElementById('navKidBtn');
+    if (btnLanding) btnLanding.classList.remove('active');
+    if (btnKid) btnKid.classList.add('active');
+
+    this.playSound('click');
+    this.render();
+  }
+
+  updateLandingCalculator(val) {
+    const n = parseInt(val, 10) || 1;
+    const dailyEl = document.getElementById('landingCalcDailyVal');
+    if (dailyEl) {
+      const word = n === 1 ? 'задание' : (n >= 2 && n <= 4 ? 'задания' : 'заданий');
+      dailyEl.textContent = `${n} ${word}`;
+    }
+    const weekTasks = n * 7;
+    const weekCoins = Math.round(weekTasks * 1.9);
+    const weekTokens = weekTasks;
+
+    const tTasks = document.getElementById('landingCalcWeekTasks');
+    const tCoins = document.getElementById('landingCalcWeekCoins');
+    const tTokens = document.getElementById('landingCalcWeekTokens');
+    if (tTasks) tTasks.textContent = `${weekTasks}`;
+    if (tCoins) tCoins.textContent = `~${weekCoins} 🪙`;
+    if (tTokens) tTokens.textContent = `${weekTokens} ⭐`;
+
+    const linePhone = document.getElementById('calcLinePhone');
+    const linePc = document.getElementById('calcLinePc');
+    const linePizza = document.getElementById('calcLinePizza');
+
+    if (linePhone) {
+      const ok = weekTasks >= 10;
+      linePhone.classList.toggle('unlocked', ok);
+      linePhone.innerHTML = `<span>📱 Телефон на след. неделю (10 квестов)</span>` +
+        (ok ? `<strong style="color: var(--c-emerald);">РАЗБЛОКИРОВАН ✅</strong>` : `<strong style="color: var(--c-text-muted);">Ещё ${10 - weekTasks} квестов 🔒</strong>`);
+    }
+    if (linePc) {
+      const ok = weekTasks >= 20;
+      linePc.classList.toggle('unlocked', ok);
+      linePc.innerHTML = `<span>💻 Компьютер на след. неделю (20 квестов)</span>` +
+        (ok ? `<strong style="color: var(--c-emerald);">РАЗБЛОКИРОВАН ✅</strong>` : `<strong style="color: var(--c-text-muted);">Ещё ${20 - weekTasks} квестов 🔒</strong>`);
+    }
+    if (linePizza) {
+      const ok = weekCoins >= 35;
+      linePizza.classList.toggle('unlocked', ok);
+      linePizza.innerHTML = `<span>🍕 Большая семейная пицца (35 монет)</span>` +
+        (ok ? `<strong style="color: var(--c-gold);">ХВАТАЕТ МОНЕТ! 🍕</strong>` : `<strong style="color: var(--c-text-muted);">Нужно ещё ${35 - weekCoins} 🪙</strong>`);
+    }
+  }
+
+  toggleFaqItem(faqEl) {
+    if (!faqEl) return;
+    const isOpen = faqEl.classList.contains('active');
+    document.querySelectorAll('.faq-item').forEach(el => el.classList.remove('active'));
+    if (!isOpen) {
+      faqEl.classList.add('active');
+      this.playSound('click');
+    }
   }
 
   openParentPinModal() {
@@ -1177,9 +1266,7 @@ class QuestHeroApp {
     if (this.pinBuffer === parentPin) {
       this.closeModal('pinModal');
       this.closeModal('loginModal');
-      this.state.currentRole = 'parent';
-      document.getElementById('kidView').classList.remove('active');
-      document.getElementById('parentView').classList.add('active');
+      this.showParentView();
       this.playSound('levelUp');
       this.renderParentView();
     } else {
@@ -3567,6 +3654,14 @@ window.addEventListener('DOMContentLoaded', () => {
   // Установка сохраненной темы оформления
   app.setTheme(app.state.settings.theme || 'hero', true);
   app.render();
+
+  // Инициализация калькулятора недели на лендинге
+  app.updateLandingCalculator(3);
+
+  // Если в URL указан хеш лендинга (#landing / #about)
+  if (window.location.hash === '#landing' || window.location.hash === '#about') {
+    app.showLandingView();
+  }
 
   // Автоматический вход по инвайт-ссылке в URL (#invite=HERO-XXXX)
   if (window.location.hash && window.location.hash.startsWith('#invite=')) {

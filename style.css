@@ -32,6 +32,8 @@
   --c-rose: #fb7185;
   --c-sky: #38bdf8;
   --c-purple: #c084fc;
+  --c-indigo: #4f46e5;
+  --c-indigo-light: #818cf8;
 
   /* Text */
   --c-text: #eef0ff;
@@ -3389,40 +3391,57 @@ body::before {
 }
 
 .btn-cta-white {
-  background: #fff;
-  color: var(--c-indigo);
+  background: #ffffff;
+  color: #3730a3 !important;
   font-family: var(--ff-display);
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 900;
-  padding: 0.85rem 1.85rem;
+  padding: 0.95rem 2.2rem;
   border-radius: var(--r-pill);
-  border: none;
+  border: 2px solid transparent;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.28);
   transition: all var(--dur-normal);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  text-shadow: none;
 }
 
 .btn-cta-white:hover {
   transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38);
+  background: #ffffff;
+  color: #1e1b4b !important;
+}
+
+.btn-cta-white:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .btn-cta-outline {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
   font-family: var(--ff-body);
   font-size: 0.95rem;
   font-weight: 700;
-  padding: 0.85rem 1.6rem;
+  padding: 0.95rem 1.8rem;
   border-radius: var(--r-pill);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
   cursor: pointer;
   transition: all var(--dur-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  backdrop-filter: blur(8px);
 }
 
 .btn-cta-outline:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: #fff;
+  background: rgba(255, 255, 255, 0.24);
+  border-color: #ffffff;
+  transform: translateY(-2px);
 }
 
 /* Адаптив для мобильных устройств */

@@ -486,29 +486,37 @@ class QuestHeroApp {
   getInitialState() {
     const today = this.getMoscowDateString();
     const weekInfo = this.getWeekInfo();
+    const freshTasks = DEFAULT_TASKS.map(t => ({
+      id: t.id,
+      title: t.title,
+      icon: t.icon,
+      category: t.category,
+      coins: t.coins,
+      xp: t.xp,
+      requiresApproval: t.requiresApproval,
+      status: 'pending',
+      completedAt: null
+    }));
+
     const kid1 = {
-      id: 'kid_1',
-      name: 'Артём',
+      id: 'kid_' + Date.now(),
+      name: 'Юный Герой',
       avatar: '🦁',
       avatarPhoto: null,
-      inviteCode: 'HERO-101',
+      inviteCode: 'HERO-' + Math.floor(1000 + Math.random() * 9000),
       level: 1,
       xp: 0,
       xpNext: 100,
-      coins: 12,
+      coins: 0,
       streak: 1,
       lastActiveDate: today,
-      totalCoinsEarned: 12,
-      tasks: JSON.parse(JSON.stringify(DEFAULT_TASKS)),
+      totalCoinsEarned: 0,
+      tasks: JSON.parse(JSON.stringify(freshTasks)),
       coupons: [],
-      badges: JSON.parse(JSON.stringify(DEFAULT_BADGES)),
-      weekTokens: 6,
+      badges: DEFAULT_BADGES.map(b => ({ ...b, unlocked: false, count: 0 })),
+      weekTokens: 0,
       weekKey: weekInfo.weekKey,
-      weeklyCompletedTasks: [
-        { id: 'w1', title: 'Заправить кровать и умыться', icon: '🛏️', coins: 1, dayIndex: 0, time: '08:30', date: today },
-        { id: 'w2', title: 'Сделать уроки без напоминаний', icon: '📚', coins: 3, dayIndex: 1, time: '16:00', date: today },
-        { id: 'w3', title: 'Почитать книгу (20 минут)', icon: '📖', coins: 2, dayIndex: 2, time: '17:30', date: today }
-      ],
+      weeklyCompletedTasks: [],
       accessStatus: {
         phoneCurrentWeek: true,
         pcCurrentWeek: false,
@@ -518,50 +526,18 @@ class QuestHeroApp {
       penalties: [],
       pastWeeks: []
     };
-    const kid2 = {
-      id: 'kid_2',
-      name: 'Алиса',
-      avatar: '🦄',
-      avatarPhoto: null,
-      inviteCode: 'HERO-202',
-      level: 2,
-      xp: 45,
-      xpNext: 135,
-      coins: 18,
-      streak: 2,
-      lastActiveDate: today,
-      totalCoinsEarned: 35,
-      tasks: JSON.parse(JSON.stringify(DEFAULT_TASKS)),
-      coupons: [],
-      badges: JSON.parse(JSON.stringify(DEFAULT_BADGES)),
-      weekTokens: 11,
-      weekKey: weekInfo.weekKey,
-      weeklyCompletedTasks: [
-        { id: 'w4', title: 'Вкусный и полезный завтрак', icon: '🍳', coins: 1, dayIndex: 0, time: '09:00', date: today },
-        { id: 'w5', title: 'Сделать уроки без напоминаний', icon: '📚', coins: 3, dayIndex: 1, time: '15:20', date: today },
-        { id: 'w6', title: 'Порядок на столе и в комнате', icon: '🧹', coins: 2, dayIndex: 2, time: '18:15', date: today }
-      ],
-      accessStatus: {
-        phoneCurrentWeek: true,
-        pcCurrentWeek: true,
-        parentOverridePhone: null,
-        parentOverridePc: null
-      },
-      penalties: [],
-      pastWeeks: []
-    };
 
     return {
       currentRole: 'kid',
-      activeKidId: 'kid_1',
+      activeKidId: kid1.id,
       parent: {
         name: 'Родители',
         pin: '1234'
       },
-      kids: [kid1, kid2],
+      kids: [kid1],
       rewards: JSON.parse(JSON.stringify(DEFAULT_REWARDS)),
       history: [
-        { id: 'h0', time: this.getMoscowTimeString(), text: 'Приключение началось! Семья подключена.', type: 'bonus' }
+        { id: 'h0', time: this.getMoscowTimeString(), text: 'Добро пожаловать в «КвестГерой»!', type: 'bonus' }
       ],
       settings: {
         pin: '1234',
@@ -1394,6 +1370,84 @@ class QuestHeroApp {
       }
       if (emailEl) emailEl.textContent = 'Офлайн (PIN 1234)';
       if (cardSub) cardSub.textContent = 'Вход или регистрация в облаке';
+    }
+  }
+
+  async checkSupabaseTables() {
+    const banner = document.getElementById('supabaseSetupBanner');
+    if (!banner || !this.supabase) return;
+    try {
+      const { data, error } = await this.supabase.from('kids').select('id').limit(1);
+      if (error && (error.code === '42P01' || (error.message && error.message.includes('does not exist')) || error.status === 404)) {
+        banner.style.display = 'block';
+      } else {
+        banner.style.display = 'none';
+      }
+    } catch (e) {
+      banner.style.display = 'block';
+    }
+  }
+
+  copySupabaseSqlScript() {
+    const sql = `-- Скрипт создания таблиц КвестГерой для Supabase SQL Editor
+-- Вставьте этот текст в Supabase: SQL Editor -> New Query -> Run
+
+create table if not exists public.kids (
+  id text primary key,
+  parent_id uuid references auth.users(id) on delete cascade,
+  name text not null,
+  avatar text default '🦁',
+  invite_code text unique not null,
+  coins integer default 0,
+  week_tokens integer default 0,
+  streak integer default 1,
+  level integer default 1,
+  xp integer default 0,
+  access_status jsonb default '{"phoneCurrentWeek": true, "pcCurrentWeek": false}'::jsonb,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+create table if not exists public.tasks (
+  id text not null,
+  kid_id text references public.kids(id) on delete cascade,
+  title text not null,
+  icon text default '⭐',
+  category text default 'routine',
+  coins integer default 1,
+  xp integer default 10,
+  requires_approval boolean default false,
+  status text default 'pending',
+  completed_at timestamp with time zone,
+  primary key (id, kid_id)
+);
+
+create table if not exists public.weekly_milestones (
+  id uuid default gen_random_uuid() primary key,
+  kid_id text references public.kids(id) on delete cascade,
+  title text not null,
+  required_tokens integer default 5,
+  device_key text default 'phone',
+  unlocked boolean default false,
+  claimed boolean default false
+);
+
+alter table public.kids enable row level security;
+alter table public.tasks enable row level security;
+alter table public.weekly_milestones enable row level security;
+
+create policy "Kids open policy" on public.kids for all using (true) with check (true);
+create policy "Tasks open policy" on public.tasks for all using (true) with check (true);
+create policy "Milestones open policy" on public.weekly_milestones for all using (true) with check (true);
+`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(sql).then(() => {
+        alert('✅ SQL-скрипт скопирован в буфер обмена!\n\n1. Перейдите в открывшийся SQL Editor в Supabase\n2. Нажмите Вставить (Ctrl+V)\n3. Нажмите кнопку «Run»\nТаблицы будут созданы мгновенно!');
+      }).catch(() => {
+        prompt('Скопируйте этот SQL скрипт для Supabase:', sql);
+      });
+    } else {
+      prompt('Скопируйте этот SQL скрипт для Supabase:', sql);
     }
   }
 
@@ -2718,12 +2772,14 @@ class QuestHeroApp {
       return;
     }
 
+    let targetKid = null;
     if (id) {
       const kid = this.state.kids.find(k => k.id === id);
       if (kid) {
         kid.name = name;
         kid.avatar = this.inviteAvatarChoice;
         kid.inviteCode = code;
+        targetKid = kid;
         this.addHistory(`✏️ Родители обновили профиль ребёнка: ${name}`);
       }
     } else {
@@ -2745,9 +2801,28 @@ class QuestHeroApp {
         badges: JSON.parse(JSON.stringify(DEFAULT_BADGES))
       };
       this.state.kids.push(newKid);
+      targetKid = newKid;
       this.addHistory(`🎉 В семью добавлен новый герой: ${name}! Инвайт-код: ${code}`);
       this.playSound('levelUp');
       this.triggerConfetti();
+    }
+
+    if (this.supabase && targetKid) {
+      const parentId = this.supabaseUser ? this.supabaseUser.id : null;
+      this.supabase.from('kids').upsert([{
+        id: targetKid.id,
+        parent_id: parentId,
+        name: targetKid.name,
+        avatar: targetKid.avatar || '🦁',
+        invite_code: targetKid.inviteCode,
+        coins: targetKid.coins || 0,
+        week_tokens: targetKid.weekTokens || 0,
+        streak: targetKid.streak || 1,
+        level: targetKid.level || 1,
+        xp: targetKid.xp || 0
+      }]).then(({ error }) => {
+        if (error) console.warn('Supabase kid upsert error:', error);
+      });
     }
 
     this.saveState();
@@ -3293,6 +3368,8 @@ class QuestHeroApp {
 
   renderParentView() {
     if (!this.state.kids) return;
+
+    this.checkSupabaseTables();
 
     // 1. Бейдж количества детей на вкладке
     const kidsBadge = document.getElementById('parentKidsBadge');

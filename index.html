@@ -887,6 +887,24 @@
 
       <!-- Секция родителя: 0. Дети и инвайты -->
       <div id="parentKidsTab" class="parent-tab-content active">
+        <!-- Баннер проверки настройки таблиц Supabase -->
+        <div id="supabaseSetupBanner" class="auth-error-banner" style="display: none; margin-bottom: 1.25rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fde68a; border-radius: var(--r-md); padding: 1.15rem 1.25rem;">
+          <div style="font-weight: 800; font-size: 1rem; margin-bottom: 0.35rem; color: #fbbf24;">
+            ⚠️ Внимание: Таблицы базы данных ещё не созданы в Supabase!
+          </div>
+          <p style="font-size: 0.88rem; line-height: 1.5; margin: 0 0 0.85rem 0; color: #fef3c7;">
+            Пока таблицы не созданы в вашем проекте Supabase, данные сохраняются только на одном телефоне и не могут синхронизироваться между родителем и ребёнком. Создайте таблицы в 1 клик через SQL Editor!
+          </p>
+          <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
+            <button type="button" class="primary-btn btn-small" onclick="app.copySupabaseSqlScript()">
+              📋 Скопировать готовый SQL для Supabase
+            </button>
+            <a href="https://supabase.com/dashboard/project/xptfevazfplqkedxrivt/sql/new" target="_blank" class="secondary-btn btn-small" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+              <span>↗️</span> Открыть SQL Editor в Supabase
+            </a>
+          </div>
+        </div>
+
         <div class="section-card">
           <div class="card-title-bar">
             <div>
